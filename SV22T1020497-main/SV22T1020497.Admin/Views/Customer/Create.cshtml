@@ -1,0 +1,80 @@
+﻿@model SV22T1020497.Models.Partner.Customer
+@{
+    ViewBag.Title = "Thêm khách hàng mới";
+}
+@section PageToolBar {
+    <button type="submit" form="formCreate" class="btn btn-primary">
+        <i class="bi bi-save"></i>
+        Lưu dữ liệu
+    </button>
+
+    <a href="~/Customer" class="btn btn-secondary ms-1">
+        <i class="bi bi-arrow-left"></i>
+        Quay lại
+    </a>
+}
+<div class="row justify-content-center">
+    <div class="col-12">
+        <div class="card card-primary card-outline">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-person me-2"></i>
+                    Thông tin khách hàng
+                </h5>
+            </div>
+
+            <div class="card-body">
+                <form id="formCreate" method="post" asp-controller="Customer" asp-action="Create">
+                    @Html.AntiForgeryToken()
+                    <div class="mb-3">
+                        <label class="form-label">TĂªn khĂ¡ch hĂ ng</label>
+                        <input asp-for="CustomerName" class="form-control" placeholder="Nhập tên khách hàng" autofocus />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Tên giao dịch</label>
+                        <input asp-for="ContactName" class="form-control" placeholder="Nhập tên giao dịch" />
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Điện thoại</label>
+                            <input asp-for="Phone" class="form-control" placeholder="Nhập số điện thoại" />
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Email</label>
+                            <input asp-for="Email" class="form-control" placeholder="Nhập email" />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Địa chỉ</label>
+                        <textarea asp-for="Address" class="form-control" rows="3" placeholder="Nhập địa chỉ"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Tỉnh / Thành</label>
+                        <input asp-for="Province" class="form-control" placeholder="Nhập tỉnh / thành" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Mật khẩu</label>
+                        <input asp-for="Password" type="password" class="form-control" placeholder="Nhập mật khẩu" />
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        <input type="hidden" name="IsLocked" value="false" />
+                        <input class="form-check-input"
+                               type="checkbox"
+                               id="IsLocked"
+                               name="IsLocked"
+                               value="true"
+                               @(Model?.IsLocked == true ? "checked" : "") />
+                        <label class="form-check-label" for="IsLocked">Khóa tài khoản</label>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

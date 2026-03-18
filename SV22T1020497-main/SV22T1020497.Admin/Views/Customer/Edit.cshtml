@@ -1,0 +1,96 @@
+﻿@model SV22T1020497.Models.Partner.Customer
+@{
+}
+@section PageToolBar {
+    <button type="submit" form="formEdit" class="btn btn-primary">
+        <i class="bi bi-save"></i>
+        Lưu dữ liệu
+    </button>    
+    <a href="~/Customer" class="btn btn-secondary ms-1">
+        <i class="bi bi-arrow-left"></i>
+        Quay lại
+    </a>
+}
+
+<div class="row justify-content-center">
+    <div class="col-12">
+        <div class="card card-primary card-outline">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-people me-2"></i>
+                    Thông tin khách hàng
+                </h5>
+            </div>
+
+            <div class="card-body">
+                <form id="formEdit" method="post" asp-controller="Customer" asp-action="Edit">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="CustomerID" />
+
+                    <div class="row align-items-end">
+                        <div class="col-md-5 mb-3">
+                            <label class="form-label">TĂªn khĂ¡ch hĂ ng</label>
+                            <input asp-for="CustomerName"
+                                   class="form-control"
+                                   placeholder="Nhập tên khách hàng" autofocus />
+                        </div>
+                        <div class="col-md-5 mb-3">
+                            <label class="form-label">Tên giao dịch</label>
+                            <input asp-for="ContactName"
+                                   class="form-control"
+                                   placeholder="Nhập tên giao dịch" />
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <label class="form-label d-block">Trạng thái</label>
+                            <div class="form-check form-switch mt-2">
+                                <input type="hidden" name="IsLocked" value="false" />
+                                <input class="form-check-input"
+                                       type="checkbox"
+                                       id="IsLocked"
+                                       name="IsLocked"
+                                       value="true"
+                                       @(Model?.IsLocked == true ? "checked" : "") />
+                                <label class="form-check-label" for="IsLocked">
+                                    Khóa tài khoản
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-5 mb-3">
+                            <label class="form-label">Điện thoại</label>
+                            <input asp-for="Phone"
+                                   type="tel"
+                                   class="form-control"
+                                   placeholder="Nhập số điện thoại" />
+                        </div>
+
+                        <div class="col-md-7 mb-3">
+                            <label class="form-label">Email</label>
+                            <input asp-for="Email"
+                                   type="email"
+                                   class="form-control"
+                                   placeholder="Nhập email" />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Địa chỉ</label>
+                        <textarea asp-for="Address"
+                                  class="form-control"
+                                  rows="3"
+                                  placeholder="Nhập địa chỉ"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Tỉnh / Thành</label>
+                        <input asp-for="Province"
+                               class="form-control"
+                               placeholder="Nhập tỉnh / thành phố" />
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

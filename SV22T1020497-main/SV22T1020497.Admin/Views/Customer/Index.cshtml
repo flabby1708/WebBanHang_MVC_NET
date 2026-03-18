@@ -1,0 +1,362 @@
+@model IEnumerable<SV22T1020497.Models.Partner.Customer>
+@{
+    ViewBag.Title = "Quản lý khách hàng";
+    int currentPage = ViewBag.CurrentPage is int pageValue ? pageValue : 1;
+    int totalPages = ViewBag.TotalPages is int totalPageValue ? totalPageValue : 1;
+    int totalItems = ViewBag.TotalItems is int totalItemValue ? totalItemValue : (Model?.Count() ?? 0);
+    string searchValue = Convert.ToString(ViewBag.SearchValue) ?? "";
+    var displayPages = ViewBag.DisplayPages as List<PageItem> ?? new List<PageItem>();
+}
+
+@section Styles {
+    <style>
+        .customer-page .card {
+            border: 0;
+            border-radius: 1rem;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+        }
+
+        .customer-page .search-card {
+            background: linear-gradient(135deg, #f8fbff 0%, #ffffff 100%);
+        }
+
+        .customer-page .search-icon {
+            background-color: #eef4ff;
+            color: #1d4ed8;
+            border: 1px solid #dbe7ff;
+        }
+
+        .customer-page .search-input {
+            border-left: 0;
+            border-right: 0;
+            box-shadow: none;
+        }
+
+        .customer-page .search-input:focus {
+            box-shadow: none;
+        }
+
+        .customer-page .summary-card {
+            background: linear-gradient(135deg, #1f2937 0%, #334155 100%);
+            color: #fff;
+        }
+
+        .customer-page .summary-label {
+            color: rgba(255, 255, 255, 0.72);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-size: 0.75rem;
+        }
+
+        .customer-page .table-shell {
+            overflow-x: auto;
+        }
+
+        .customer-page .customer-table {
+            min-width: 1080px;
+            vertical-align: middle;
+        }
+
+        .customer-page .customer-table thead th {
+            border-bottom: 0;
+            color: #475569;
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            white-space: nowrap;
+        }
+
+        .customer-page .customer-table tbody td {
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+        }
+
+        .customer-page .customer-name {
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .customer-page .customer-subtext {
+            color: #64748b;
+            font-size: 0.875rem;
+        }
+
+        .customer-page .contact-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.35rem 0.7rem;
+            border-radius: 999px;
+            background-color: #f8fafc;
+            color: #334155;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .customer-page .text-wrap-limit {
+            max-width: 240px;
+            white-space: normal;
+            word-break: break-word;
+        }
+
+        .customer-page .province-text {
+            min-width: 120px;
+            white-space: normal;
+        }
+
+        .customer-page .status-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.55rem 0.8rem;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            min-width: 102px;
+        }
+
+        .customer-page .status-badge.active {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        .customer-page .status-badge.locked {
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .customer-page .action-group {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 0.45rem;
+        }
+
+        .customer-page .action-group .btn {
+            width: 2.25rem;
+            height: 2.25rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.75rem;
+            padding: 0;
+        }
+
+        .customer-page .pagination-card {
+            border-top: 1px solid #e2e8f0;
+            background-color: #f8fafc;
+        }
+
+        .customer-page .pagination {
+            flex-wrap: wrap;
+            gap: 0.4rem;
+        }
+
+        .customer-page .page-item .page-link {
+            border-radius: 0.75rem;
+            min-width: 2.5rem;
+            text-align: center;
+            border: 1px solid #dbe4f0;
+            color: #334155;
+            background: #fff;
+        }
+
+        .customer-page .page-item.active .page-link {
+            background: #2563eb;
+            border-color: #2563eb;
+            color: #fff;
+        }
+
+        .customer-page .page-item.disabled .page-link {
+            background: #eef2f7;
+            color: #94a3b8;
+        }
+
+        @@media (max-width: 768px) {
+            .customer-page .table-shell {
+                margin-left: -0.75rem;
+                margin-right: -0.75rem;
+            }
+
+            .customer-page .card-body {
+                padding-left: 0.9rem;
+                padding-right: 0.9rem;
+            }
+        }
+    </style>
+}
+
+@section PageToolBar {
+    <a href="~/Customer/Create" class="btn btn-primary d-flex align-items-center ms-1">
+        <i class="bi bi-plus-circle me-1"></i>
+        Bổ sung
+    </a>
+}
+
+<div class="customer-page">
+    <div class="card search-card mb-3">
+        <div class="card-body p-3 p-lg-4">
+            <div class="row g-3 align-items-center">
+                <div class="col-lg-8">
+                    <form id="formSearch" method="get" action="~/Customer">
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text search-icon">
+                                <i class="bi bi-search"></i>
+                            </span>
+                            <input type="text"
+                                   class="form-control search-input"
+                                   name="searchValue"
+                                   value="@searchValue"
+                                   placeholder="Tên khách hàng, email hoặc số điện thoại..."
+                                   autofocus />
+                            <button class="btn btn-primary px-4 d-flex align-items-center">
+                                Tìm kiếm
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-lg-4">
+                    <div class="summary-card rounded-4 p-3 p-xl-4 h-100">
+                        <div class="summary-label mb-2">Tổng khách hàng tìm thấy</div>
+                        <div class="fs-2 fw-bold">@totalItems</div>
+                        <div class="small text-white-50">Trang @currentPage / @Math.Max(totalPages, 1)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body p-2 p-lg-3">
+            <div class="table-shell">
+                <table class="table table-hover customer-table mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 20%;">Khách hàng</th>
+                            <th style="width: 14%;">Liên hệ</th>
+                            <th style="width: 12%;">Điện thoại</th>
+                            <th style="width: 18%;">Email</th>
+                            <th style="width: 18%;">Địa chỉ</th>
+                            <th style="width: 10%;">Tỉnh / Thành</th>
+                            <th class="text-center" style="width: 110px;">Trạng thái</th>
+                            <th class="text-center" style="width: 170px;">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            @foreach (var customer in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="customer-name">@customer.CustomerName</div>
+                                        <div class="customer-subtext">Mã KH: #@customer.CustomerID</div>
+                                    </td>
+                                    <td>
+                                        <span class="contact-chip">
+                                            <i class="bi bi-person"></i>
+                                            @customer.ContactName
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="text-nowrap fw-semibold">@customer.Phone</div>
+                                    </td>
+                                    <td>
+                                        <div class="text-wrap-limit">@customer.Email</div>
+                                    </td>
+                                    <td>
+                                        <div class="text-wrap-limit">@customer.Address</div>
+                                    </td>
+                                    <td>
+                                        <div class="province-text">@customer.Province</div>
+                                    </td>
+                                    <td class="text-center">
+                                        @if (customer.IsLocked == true)
+                                        {
+                                            <span class="status-badge locked">Khóa</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="status-badge active">Hoạt động</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="action-group">
+                                            <a href="~/Customer/Details/@customer.CustomerID" class="btn btn-info btn-sm" title="Chi tiết">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a href="~/Customer/Orders/@customer.CustomerID" class="btn btn-secondary btn-sm" title="Đơn hàng">
+                                                <i class="bi bi-receipt"></i>
+                                            </a>
+                                            <a href="~/Customer/Edit/@customer.CustomerID" class="btn btn-primary btn-sm" title="Sửa">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <a href="~/Customer/Delete/@customer.CustomerID" class="btn btn-danger btn-sm" title="Xóa">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                            <a href="~/Customer/ChangePassword/@customer.CustomerID" class="btn btn-warning btn-sm" title="Đổi mật khẩu">
+                                                <i class="bi bi-key"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="8" class="text-center py-5 text-muted">
+                                    Không có dữ liệu khách hàng phù hợp với tìm kiếm.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        @if (totalPages > 1)
+        {
+            <div class="card-footer pagination-card py-3">
+                <ul class="pagination justify-content-center mb-0">
+                    <li class="page-item @(currentPage <= 1 ? "disabled" : "")">
+                        <a class="page-link" href="@(currentPage <= 1 ? "#" : Url.Action("Index", new { page = 1, searchValue }))">«</a>
+                    </li>
+                    <li class="page-item @(currentPage <= 1 ? "disabled" : "")">
+                        <a class="page-link" href="@(currentPage <= 1 ? "#" : Url.Action("Index", new { page = currentPage - 1, searchValue }))">‹</a>
+                    </li>
+
+                    @foreach (var pageItem in displayPages)
+                    {
+                        if (pageItem.IsEllipsis)
+                        {
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        }
+                        else if (pageItem.IsCurrent)
+                        {
+                            <li class="page-item active">
+                                <span class="page-link">@pageItem.Page</span>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="page-item">
+                                <a class="page-link" href="@Url.Action("Index", new { page = pageItem.Page, searchValue })">@pageItem.Page</a>
+                            </li>
+                        }
+                    }
+
+                    <li class="page-item @(currentPage >= totalPages ? "disabled" : "")">
+                        <a class="page-link" href="@(currentPage >= totalPages ? "#" : Url.Action("Index", new { page = currentPage + 1, searchValue }))">›</a>
+                    </li>
+                    <li class="page-item @(currentPage >= totalPages ? "disabled" : "")">
+                        <a class="page-link" href="@(currentPage >= totalPages ? "#" : Url.Action("Index", new { page = totalPages, searchValue }))">»</a>
+                    </li>
+                </ul>
+            </div>
+        }
+    </div>
+</div>

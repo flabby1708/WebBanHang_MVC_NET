@@ -1,0 +1,41 @@
+@model SV22T1020497.Models.Partner.Shipper
+@{
+    ViewBag.Title = "Xóa người giao hàng";
+}
+
+@section PageToolBar {
+    <button type="submit" form="formDelete" class="btn btn-danger">
+        <i class="bi bi-trash"></i>
+        Xóa dữ liệu
+    </button>
+
+    <a href="~/Shipper" class="btn btn-secondary ms-1">
+        <i class="bi bi-arrow-left"></i>
+        Quay lại
+    </a>
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card card-danger card-outline">
+            <div class="card-header">
+                <h5 class="mb-0">Xác nhận xóa người giao hàng</h5>
+            </div>
+            <div class="card-body">
+                <p>Bạn có chắc chắn muốn xóa người giao hàng sau không?</p>
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Tên người giao hàng</dt>
+                    <dd class="col-sm-8">@Model?.ShipperName</dd>
+
+                    <dt class="col-sm-4">Điện thoại</dt>
+                    <dd class="col-sm-8">@Model?.Phone</dd>
+                </dl>
+
+                <form id="formDelete" method="post" asp-controller="Shipper" asp-action="Delete" class="d-none">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model?.ShipperID" />
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

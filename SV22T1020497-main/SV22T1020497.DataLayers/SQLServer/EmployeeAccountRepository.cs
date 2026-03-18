@@ -1,0 +1,63 @@
+using Dapper;
+using Microsoft.Data.SqlClient;
+using SV22T1020497.DataLayers.Interfaces;
+using SV22T1020497.Models.Security;
+
+namespace SV22T1020497.DataLayers.SQLServer
+{
+    /// <summary>
+    /// Cài đặt các phép xử lý dữ liệu tài khoản nhân viên trên SQL Server.
+    /// </summary>
+    public class EmployeeAccountRepository : IUserAccountRepository
+    {
+        private readonly string _connectionString;
+
+        /// <summary>
+        /// Khởi tạo repository với chuỗi kết nối SQL Server.
+        /// </summary>
+        /// <param name="connectionString">Chuỗi kết nối cơ sở dữ liệu.</param>
+        public EmployeeAccountRepository(string connectionString)
+        {
+            _connectionString = connectionString;
+        }
+
+        /// <summary>
+        /// Kiểm tra thông tin đăng nhập của nhân viên.
+        /// </summary>
+        /// <param name="userName">Tên đăng nhập, sử dụng email nhân viên.</param>
+        /// <param name="password">Mật khẩu đăng nhập.</param>
+        /// <returns>Thông tin tài khoản nếu hợp lệ; ngược lại trả về null.</returns>
+        public async Task<UserAccount?> Authorize(string userName, string password)
+        {
+            const string sql = @"
+SELECT CAST(EmployeeID AS nvarchar(50)) AS UserId,
+       Email AS UserName,
+       FullName AS DisplayName,
+       ISNULL(Email, N'') AS Email,
+       ISNULL(Photo, N'') AS Photo,
+       ISNULL(RoleNames, N'') AS RoleNames
+FROM Employees
+WHERE Email = @UserName
+  AND Password = @Password
+  AND ISNULL(IsWorking, 0) = 1;";
+
+            await using var connection = new SqlConnection(_connectionString);
+            return await connection.QueryFirstOrDefaultAsync<UserAccount>(sql, new { UserName = userName, Password = password });
+        }
+
+        /// <summary>
+        /// Đổi mật khẩu cho tài khoản nhân viên.
+        /// </summary>
+        /// <param name="userName">Tên đăng nhập, sử dụng email nhân viên.</param>
+        /// <param name="password">Mật khẩu mới.</param>
+        /// <returns>True nếu đổi mật khẩu thành công, ngược lại là false.</returns>
+        public async Task<bool> ChangePassword(string userName, string password)
+        {
+            const string sql = @"UPDATE Employees
+                                 SET Password = @Password
+                                 WHERE Email = @UserName;";
+            await using var connection = new SqlConnection(_connectionString);
+            return await connection.ExecuteAsync(sql, new { UserName = userName, Password = password }) > 0;
+        }
+    }
+}
