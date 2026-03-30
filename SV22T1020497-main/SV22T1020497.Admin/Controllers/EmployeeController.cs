@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using SV22T1020497.Admin.AppCodes;
 using SV22T1020497.BusinessLayers;
 using SV22T1020497.DataLayers.SQLServer;
 using SV22T1020497.Models.Common;
@@ -27,52 +28,76 @@ namespace SV22T1020497.Admin.Controllers
 
         public IActionResult Create()
         {
-            return View(new Employee());
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Employee model)
-        {
-            if (!ModelState.IsValid) return View(model);
-
-            var repository = CreateRepository();
-            if (!await repository.ValidateEmailAsync(model.Email))
+            ViewBag.Title = "Bổ sung nhân viên";
+            var model = new Employee
             {
-                ModelState.AddModelError(nameof(model.Email), "Email đã tồn tại.");
-                return View(model);
-            }
-
-            await repository.AddAsync(model);
-            TempData["SuccessMessage"] = "Đã thêm nhân viên.";
-            return RedirectToAction(nameof(Index));
+                EmployeeID = 0,
+                IsWorking = true
+            };
+            return View("Edit", model);
         }
 
         public async Task<IActionResult> Edit(int id)
         {
-            var emp = await CreateRepository().GetAsync(id);
-            if (emp == null) return NotFound();
-            return View(emp);
+            ViewBag.Title = "Cập nhật thông tin nhân viên";
+            var model = await HRDataService.GetEmployeeAsync(id);
+            if (model == null)
+                return RedirectToAction("Index");
+
+            return View(model);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Employee model)
+        public async Task<IActionResult> SaveData(Employee data, IFormFile? uploadPhoto)
         {
-            if (!ModelState.IsValid) return View(model);
-
-            var repository = CreateRepository();
-            if (!await repository.ValidateEmailAsync(model.Email, model.EmployeeID))
+            try
             {
-                ModelState.AddModelError(nameof(model.Email), "Email đã tồn tại.");
-                return View(model);
+                ViewBag.Title = data.EmployeeID == 0 ? "Bổ sung nhân viên" : "Cập nhật thông tin nhân viên";
+
+                if (string.IsNullOrWhiteSpace(data.FullName))
+                    ModelState.AddModelError(nameof(data.FullName), "Vui lòng nhập họ tên nhân viên");
+
+                if (string.IsNullOrWhiteSpace(data.Email))
+                    ModelState.AddModelError(nameof(data.Email), "Vui lòng nhập email nhân viên");
+                else if (!await HRDataService.ValidateEmployeeEmailAsync(data.Email, data.EmployeeID))
+                    ModelState.AddModelError(nameof(data.Email), "Email đã được sử dụng bởi nhân viên khác");
+
+                if (!ModelState.IsValid)
+                    return View("Edit", data);
+
+                if (uploadPhoto != null)
+                {
+                    var fileName = $"{Guid.NewGuid()}{Path.GetExtension(uploadPhoto.FileName)}";
+                    var directory = Path.Combine(ApplicationContext.WWWRootPath, "images", "employees");
+                    Directory.CreateDirectory(directory);
+
+                    var filePath = Path.Combine(directory, fileName);
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await uploadPhoto.CopyToAsync(stream);
+                    }
+                    data.Photo = fileName;
+                }
+
+                if (string.IsNullOrEmpty(data.Address)) data.Address = "";
+                if (string.IsNullOrEmpty(data.Phone)) data.Phone = "";
+                if (string.IsNullOrEmpty(data.Photo)) data.Photo = "nophoto.png";
+                if (string.IsNullOrEmpty(data.Password)) data.Password = "";
+                if (string.IsNullOrEmpty(data.RoleNames)) data.RoleNames = "";
+
+                if (data.EmployeeID == 0)
+                    await HRDataService.AddEmployeeAsync(data);
+                else
+                    await HRDataService.UpdateEmployeeAsync(data);
+
+                return RedirectToAction("Index");
             }
-
-            bool updated = await repository.UpdateAsync(model);
-            if (!updated) return NotFound();
-
-            TempData["SuccessMessage"] = "Đã cập nhật thông tin nhân viên.";
-            return RedirectToAction(nameof(Index));
+            catch
+            {
+                ModelState.AddModelError(string.Empty, "Hệ thống đang bận hoặc dữ liệu không hợp lệ. Vui lòng kiểm tra dữ liệu hoặc thử lại sau");
+                return View("Edit", data);
+            }
         }
 
         public async Task<IActionResult> Delete(int id)
