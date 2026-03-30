@@ -1,8 +1,9 @@
+@model SV22T1020497.Admin.Models.OrderSearchResultViewModel
 @{
     Layout = null;
 }
 <div class="mb-2 text-muted">
-    Danh sách này có <strong>12</strong> đơn hàng
+    Danh sách này có <strong>@Model.Data.RowCount</strong> đơn hàng
 </div>
 <div class="card">
     <div class="card-body p-1">
@@ -15,41 +16,69 @@
                     <th>Ngày duyệt</th>
                     <th>Nhân viên xử lý</th>
                     <th class="text-end">Tổng tiền</th>
-                    <th class="text-center" style="width:140px;">Trạng thái</th>
+                    <th class="text-center" style="width:160px;">Trạng thái</th>
                     <th class="text-center" style="width:40px"></th>
                 </tr>
             </thead>
             <tbody>
-                @for (int i = 1; i <= 10; i++)
+                @if (Model.Data.DataItems.Any())
+                {
+                    foreach (var item in Model.Data.DataItems)
+                    {
+                        string badgeClass = item.Status switch
+                        {
+                            OrderStatusEnum.New => "bg-warning text-dark",
+                            OrderStatusEnum.Accepted => "bg-info",
+                            OrderStatusEnum.Shipping => "bg-primary",
+                            OrderStatusEnum.Completed => "bg-success",
+                            OrderStatusEnum.Rejected => "bg-danger",
+                            OrderStatusEnum.Cancelled => "bg-secondary",
+                            _ => "bg-secondary"
+                        };
+
+                        <tr>
+                            <td>@item.OrderTime.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>@item.CustomerName</td>
+                            <td>@item.CustomerPhone</td>
+                            <td>@(item.AcceptTime?.ToString("dd/MM/yyyy HH:mm") ?? "--")</td>
+                            <td>@(string.IsNullOrWhiteSpace(item.EmployeeName) ? "--" : item.EmployeeName)</td>
+                            <td class="text-end">@(Model.OrderTotals.ContainsKey(item.OrderID) ? Model.OrderTotals[item.OrderID].ToString("N0") : "0")</td>
+                            <td class="text-center">
+                                <span class="badge @badgeClass">@item.Status.GetDescription()</span>
+                            </td>
+                            <td class="text-center text-nowrap">
+                                <a href="~/Order/Detail/@item.OrderID" class="btn btn-sm btn-primary">
+                                    <i class="bi bi-receipt"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
                 {
                     <tr>
-                        <td>10/10/2025</td>
-                        <td>Nguyễn Văn A</td>
-                        <td>0912345678</td>
-                        <td>11/10/2025</td>
-                        <td>Trần Thị B</td>
-                        <td class="text-end">1,250,000</td>
-                        <td class="text-center">
-                            <span class="badge bg-warning text-dark">Chờ duyệt</span>
-                        </td>
-                        <td class="text-center text-nowrap">
-                            <a href="~/Order/Detail/123" class="btn btn-sm btn-primary">
-                                <i class="bi bi-receipt"></i>
-                            </a>
-                        </td>
+                        <td colspan="8" class="text-center text-muted py-4">Không tìm thấy đơn hàng phù hợp.</td>
                     </tr>
                 }
             </tbody>
         </table>
     </div>
-    <div class="card-footer">
-        <ul class="pagination justify-content-center mb-0">
-            @for (int p = 1; p <= 10; p++)
-            {
-                <li class="page-item">
-                    <a class="page-link" href="javascript:;" onclick="paginationSearch(event, document.getElementById('formSearch'), @p)">@p</a>
-                </li>
-            }
-        </ul>
-    </div>
+
+    @if (Model.Data.PageCount > 1)
+    {
+        <div class="card-footer">
+            <ul class="pagination justify-content-center mb-0">
+                @for (int p = 1; p <= Model.Data.PageCount; p++)
+                {
+                    <li class="page-item @(p == Model.Data.Page ? "active" : "")">
+                        <a class="page-link"
+                           href="javascript:;"
+                           onclick="paginationSearch(event, document.getElementById('formSearch'), @p)">
+                            @p
+                        </a>
+                    </li>
+                }
+            </ul>
+        </div>
+    }
 </div>

@@ -40,6 +40,14 @@ namespace SV22T1020497.BusinessLayers
         }
 
         /// <summary>
+        /// Lấy danh sách đơn hàng của một khách hàng.
+        /// </summary>
+        public static async Task<List<OrderViewInfo>> ListOrdersByCustomerAsync(int customerID)
+        {
+            return await orderDB.ListByCustomerAsync(customerID);
+        }
+
+        /// <summary>
         /// Tạo đơn hàng mới
         /// </summary>
         public static async Task<int> AddOrderAsync(Order data)

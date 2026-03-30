@@ -1,0 +1,65 @@
+@model ProductDetailsViewModel
+@{
+    ViewData["Title"] = Model.Product.ProductName;
+    string mainPhoto = Model.Photos.FirstOrDefault()?.Photo ?? Model.Product.Photo ?? "";
+}
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm">
+            <div class="ratio ratio-4x3 bg-body-secondary rounded overflow-hidden">
+                @if (!string.IsNullOrWhiteSpace(mainPhoto))
+                {
+                    <img src="~/images/products/@mainPhoto"
+                         alt="@Model.Product.ProductName"
+                         class="w-100 h-100 object-fit-cover"
+                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                }
+                <div class="d-flex align-items-center justify-content-center text-secondary" style="display:@(string.IsNullOrWhiteSpace(mainPhoto) ? "flex" : "none")">
+                    Không có ảnh sản phẩm
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <h1 class="display-6">@Model.Product.ProductName</h1>
+        <p class="text-secondary">@(string.IsNullOrWhiteSpace(Model.Product.ProductDescription) ? "Sản phẩm đang được cập nhật mô tả chi tiết." : Model.Product.ProductDescription)</p>
+        <div class="fs-3 fw-semibold text-danger mb-2">@Model.Product.Price.ToString("N0") đ</div>
+        <div class="text-secondary mb-4">Đơn vị tính: @Model.Product.Unit</div>
+
+        <form method="post" asp-controller="Cart" asp-action="Add" class="row g-3">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="productId" value="@Model.Product.ProductID" />
+            <div class="col-sm-4">
+                <label class="form-label">Số lượng</label>
+                <input type="number" name="quantity" value="@Model.Quantity" min="1" class="form-control" />
+            </div>
+            <div class="col-sm-8 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary">Thêm vào giỏ hàng</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@if (Model.Attributes.Any())
+{
+    <div class="card border-0 shadow-sm mt-4">
+        <div class="card-body">
+            <h2 class="h5 mb-3">Thông số sản phẩm</h2>
+            <div class="table-responsive">
+                <table class="table mb-0">
+                    <tbody>
+                        @foreach (var item in Model.Attributes)
+                        {
+                            <tr>
+                                <th style="width: 30%;">@item.AttributeName</th>
+                                <td>@item.AttributeValue</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}

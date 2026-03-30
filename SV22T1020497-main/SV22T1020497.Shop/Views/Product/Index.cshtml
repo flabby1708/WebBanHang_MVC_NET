@@ -1,0 +1,97 @@
+@model ProductListViewModel
+@{
+    ViewData["Title"] = "Sản phẩm";
+}
+
+<div class="row g-4">
+    <div class="col-lg-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h2 class="h5 mb-3">Tìm kiếm</h2>
+                <form method="get" asp-action="Index">
+                    <div class="mb-3">
+                        <label class="form-label">Tên hàng</label>
+                        <input name="searchValue" value="@Model.SearchInput.SearchValue" class="form-control" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Loại hàng</label>
+                        <select name="categoryId" class="form-select" asp-items="Model.Categories"></select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Giá từ</label>
+                        <input name="minPrice" value="@Model.SearchInput.MinPrice" class="form-control" type="number" min="0" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Đến giá</label>
+                        <input name="maxPrice" value="@Model.SearchInput.MaxPrice" class="form-control" type="number" min="0" />
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">Áp dụng</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-9">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1 class="h3 mb-0">Danh mục sản phẩm</h1>
+            <span class="text-secondary">@Model.Data.RowCount sản phẩm</span>
+        </div>
+
+        <div class="row g-4">
+            @foreach (var item in Model.Data.DataItems)
+            {
+                <div class="col-md-6 col-xl-4">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="ratio ratio-4x3 bg-body-secondary rounded-top overflow-hidden">
+                            @if (!string.IsNullOrWhiteSpace(item.Photo))
+                            {
+                                <img src="~/images/products/@item.Photo"
+                                     alt="@item.ProductName"
+                                     class="w-100 h-100 object-fit-cover"
+                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                            }
+                            <div class="d-flex align-items-center justify-content-center text-secondary" style="display:@(string.IsNullOrWhiteSpace(item.Photo) ? "flex" : "none")">
+                                Không có ảnh
+                            </div>
+                        </div>
+                        <div class="card-body d-flex flex-column">
+                            <h2 class="h5">@item.ProductName</h2>
+                            <p class="text-secondary small flex-grow-1">@(string.IsNullOrWhiteSpace(item.ProductDescription) ? "Đang cập nhật mô tả sản phẩm." : item.ProductDescription)</p>
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <div>
+                                    <div class="fw-semibold text-danger">@item.Price.ToString("N0") đ</div>
+                                    <div class="small text-secondary">Đơn vị: @item.Unit</div>
+                                </div>
+                                <a asp-action="Details" asp-route-id="@item.ProductID" class="btn btn-outline-primary btn-sm">Xem chi tiết</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        @if (Model.Data.PageCount > 1)
+        {
+            <nav class="mt-4">
+                <ul class="pagination">
+                    @for (int i = 1; i <= Model.Data.PageCount; i++)
+                    {
+                        <li class="page-item @(i == Model.Data.Page ? "active" : "")">
+                            <a class="page-link"
+                               asp-action="Index"
+                               asp-route-searchValue="@Model.SearchInput.SearchValue"
+                               asp-route-categoryId="@Model.SearchInput.CategoryID"
+                               asp-route-minPrice="@Model.SearchInput.MinPrice"
+                               asp-route-maxPrice="@Model.SearchInput.MaxPrice"
+                               asp-route-page="@i">@i</a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        }
+    </div>
+</div>

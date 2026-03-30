@@ -1,0 +1,48 @@
+@model OrderListViewModel
+@{
+    ViewData["Title"] = "Đơn hàng của tôi";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">Đơn hàng của tôi</h1>
+    <a asp-controller="Product" asp-action="Index" class="btn btn-outline-secondary">Tiếp tục mua sắm</a>
+</div>
+
+@if (!Model.Orders.Any())
+{
+    <div class="alert alert-info">Bạn chưa có đơn hàng nào.</div>
+}
+else
+{
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Mã đơn</th>
+                        <th>Ngày đặt</th>
+                        <th>Giao đến</th>
+                        <th>Trạng thái</th>
+                        <th style="width: 120px;"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Orders)
+                    {
+                        <tr>
+                            <td>#@item.OrderID</td>
+                            <td>@item.OrderTime.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>@item.DeliveryProvince - @item.DeliveryAddress</td>
+                            <td>
+                                <span class="badge text-bg-secondary">@item.Status.GetDescription()</span>
+                            </td>
+                            <td>
+                                <a asp-action="Details" asp-route-id="@item.OrderID" class="btn btn-outline-primary btn-sm">Chi tiết</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

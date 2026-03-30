@@ -1,46 +1,77 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - SV22T1020497.Shop</title>
+    <title>@ViewData["Title"] - LiteCommerce Shop</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/SV22T1020497.Shop.styles.css" asp-append-version="true" />
 </head>
-<body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">SV22T1020497.Shop</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+<body class="bg-light">
+    <header class="border-bottom bg-white shadow-sm">
+        <nav class="navbar navbar-expand-lg navbar-light">
+            <div class="container">
+                <a class="navbar-brand fw-semibold" asp-controller="Home" asp-action="Index">LiteCommerce Shop</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
+                <div class="collapse navbar-collapse" id="mainNav">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="nav-link" asp-controller="Home" asp-action="Index">Trang chủ</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                            <a class="nav-link" asp-controller="Product" asp-action="Index">Sản phẩm</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Cart" asp-action="Index">Giỏ hàng (@CartService.CountItems())</a>
+                        </li>
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Order" asp-action="Index">Đơn hàng của tôi</a>
+                            </li>
+                        }
                     </ul>
+                    <div class="d-flex flex-wrap gap-2">
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <a class="btn btn-outline-secondary btn-sm" asp-controller="Account" asp-action="Profile">Tài khoản</a>
+                            <a class="btn btn-dark btn-sm" asp-controller="Account" asp-action="Logout">Đăng xuất</a>
+                        }
+                        else
+                        {
+                            <a class="btn btn-outline-secondary btn-sm" asp-controller="Account" asp-action="Login">Đăng nhập</a>
+                            <a class="btn btn-primary btn-sm" asp-controller="Account" asp-action="Register">Đăng ký</a>
+                        }
+                    </div>
                 </div>
             </div>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
 
-    <footer class="border-top footer text-muted">
+    <main class="py-4">
         <div class="container">
-            &copy; 2026 - SV22T1020497.Shop - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+            }
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+            }
+            @RenderBody()
+        </div>
+    </main>
+
+    <footer class="border-top bg-white py-4 mt-4">
+        <div class="container d-flex flex-column flex-md-row justify-content-between gap-2 text-secondary small">
+            <span>&copy; 2026 LiteCommerce Shop</span>
+            <span>Mua sắm trực tuyến nhanh gọn và tiện lợi.</span>
         </div>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
