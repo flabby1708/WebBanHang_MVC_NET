@@ -25,14 +25,17 @@
                 <form id="formEdit" method="post" asp-controller="Shipper" asp-action="Edit">
                     @Html.AntiForgeryToken()
                     <input type="hidden" asp-for="ShipperID" />
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
                     <div class="mb-3">
                         <label class="form-label">Tên người giao hàng</label>
                         <input asp-for="ShipperName" class="form-control" placeholder="Nhập tên người giao hàng" autofocus />
+                        <span asp-validation-for="ShipperName" class="text-danger"></span>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Điện thoại</label>
                         <input asp-for="Phone" class="form-control" placeholder="Nhập số điện thoại" />
+                        <span asp-validation-for="Phone" class="text-danger"></span>
                     </div>
                 </form>
             </div>
