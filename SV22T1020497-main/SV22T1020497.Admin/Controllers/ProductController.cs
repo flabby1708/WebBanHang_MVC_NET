@@ -1,10 +1,13 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SV22T1020497.BusinessLayers;
 using SV22T1020497.DataLayers.SQLServer;
 using SV22T1020497.Models.Catalog;
+using SV22T1020497.Admin.AppCodes;
 
 namespace SV22T1020497.Admin.Controllers
 {
+    [Authorize(Roles = $"{WebUserRoles.Products},{WebUserRoles.SystemAdmin}")]
     public class ProductController : Controller
     {
         public async Task<IActionResult> Index(string searchValue = "", int page = 1)

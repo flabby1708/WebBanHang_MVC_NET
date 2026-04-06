@@ -129,8 +129,9 @@
         .customer-page .action-group {
             display: flex;
             justify-content: center;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
             gap: 0.45rem;
+            min-width: max-content;
         }
 
         .customer-page .action-group .btn {
@@ -141,6 +142,10 @@
             justify-content: center;
             border-radius: 0.75rem;
             padding: 0;
+        }
+
+        .customer-page .action-cell {
+            white-space: nowrap;
         }
 
         .customer-page .pagination-card {
@@ -281,7 +286,7 @@
                                             <span class="status-badge active">Hoạt động</span>
                                         }
                                     </td>
-                                    <td>
+                                    <td class="action-cell">
                                         <div class="action-group">
                                             <a href="~/Customer/Details/@customer.CustomerID" class="btn btn-info btn-sm" title="Chi tiết">
                                                 <i class="bi bi-eye"></i>

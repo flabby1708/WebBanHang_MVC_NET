@@ -5,10 +5,11 @@
 
 <div class="row justify-content-center">
     <div class="col-xl-7 col-lg-9">
-        <div class="card shadow-sm border-0">
-            <div class="card-body p-4 p-lg-5">
-                <h1 class="h3 mb-3">Tạo tài khoản khách hàng</h1>
-                <p class="text-secondary">Điền thông tin để đăng ký và bắt đầu mua sắm.</p>
+        <section class="shop-form-shell">
+            <div class="shop-form-panel">
+                <span class="shop-section__eyebrow">Tạo tài khoản</span>
+                <h1 class="shop-form-title">Đăng ký khách hàng mới</h1>
+                <p class="shop-form-subtitle">Điền thông tin để bắt đầu mua sắm nhanh hơn trong những lần tiếp theo.</p>
 
                 <form method="post" asp-action="Register">
                     @Html.AntiForgeryToken()
@@ -64,10 +65,10 @@
                         </div>
                     </div>
 
-                    <button type="submit" class="btn btn-primary mt-4">Đăng ký tài khoản</button>
+                    <button type="submit" class="btn btn-primary shop-btn-primary mt-4">Đăng ký tài khoản</button>
                 </form>
             </div>
-        </div>
+        </section>
     </div>
 </div>
 

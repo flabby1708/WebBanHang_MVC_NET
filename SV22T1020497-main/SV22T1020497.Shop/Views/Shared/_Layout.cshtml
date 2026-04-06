@@ -3,21 +3,32 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - LiteCommerce Shop</title>
+    <title>@ViewData["Title"] - Tuna Shop</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/SV22T1020497.Shop.styles.css" asp-append-version="true" />
 </head>
-<body class="bg-light">
-    <header class="border-bottom bg-white shadow-sm">
-        <nav class="navbar navbar-expand-lg navbar-light">
+<body class="shop-shell">
+    <div class="shop-shell__glow shop-shell__glow--left"></div>
+    <div class="shop-shell__glow shop-shell__glow--right"></div>
+
+    <header class="shop-header">
+        <nav class="navbar navbar-expand-lg">
             <div class="container">
-                <a class="navbar-brand fw-semibold" asp-controller="Home" asp-action="Index">LiteCommerce Shop</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+                <a class="navbar-brand shop-brand" asp-controller="Home" asp-action="Index">
+                    <span class="shop-brand__badge">TS</span>
+                    <span class="shop-brand__text">
+                        <strong>Tuna Shop</strong>
+                        <small>Mua sắm sáng và hiện đại</small>
+                    </span>
+                </a>
+
+                <button class="navbar-toggler shop-navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
                     <span class="navbar-toggler-icon"></span>
                 </button>
+
                 <div class="collapse navbar-collapse" id="mainNav">
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <ul class="navbar-nav mx-auto mb-2 mb-lg-0 shop-nav">
                         <li class="nav-item">
                             <a class="nav-link" asp-controller="Home" asp-action="Index">Trang chủ</a>
                         </li>
@@ -34,16 +45,17 @@
                             </li>
                         }
                     </ul>
-                    <div class="d-flex flex-wrap gap-2">
+
+                    <div class="d-flex flex-wrap gap-2 shop-actions">
                         @if (User.Identity?.IsAuthenticated == true)
                         {
-                            <a class="btn btn-outline-secondary btn-sm" asp-controller="Account" asp-action="Profile">Tài khoản</a>
-                            <a class="btn btn-dark btn-sm" asp-controller="Account" asp-action="Logout">Đăng xuất</a>
+                            <a class="btn btn-outline-primary shop-btn-soft" asp-controller="Account" asp-action="Profile">Tài khoản</a>
+                            <a class="btn btn-primary shop-btn-primary" asp-controller="Account" asp-action="Logout">Đăng xuất</a>
                         }
                         else
                         {
-                            <a class="btn btn-outline-secondary btn-sm" asp-controller="Account" asp-action="Login">Đăng nhập</a>
-                            <a class="btn btn-primary btn-sm" asp-controller="Account" asp-action="Register">Đăng ký</a>
+                            <a class="btn btn-outline-primary shop-btn-soft" asp-controller="Account" asp-action="Login">Đăng nhập</a>
+                            <a class="btn btn-primary shop-btn-primary" asp-controller="Account" asp-action="Register">Đăng ký</a>
                         }
                     </div>
                 </div>
@@ -51,24 +63,27 @@
         </nav>
     </header>
 
-    <main class="py-4">
+    <main class="shop-main">
         <div class="container">
             @if (TempData["SuccessMessage"] != null)
             {
-                <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+                <div class="alert alert-success shop-alert">@TempData["SuccessMessage"]</div>
             }
             @if (TempData["ErrorMessage"] != null)
             {
-                <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+                <div class="alert alert-danger shop-alert">@TempData["ErrorMessage"]</div>
             }
             @RenderBody()
         </div>
     </main>
 
-    <footer class="border-top bg-white py-4 mt-4">
-        <div class="container d-flex flex-column flex-md-row justify-content-between gap-2 text-secondary small">
-            <span>&copy; 2026 LiteCommerce Shop</span>
-            <span>Mua sắm trực tuyến nhanh gọn và tiện lợi.</span>
+    <footer class="shop-footer">
+        <div class="container shop-footer__inner">
+            <div>
+                <strong>Tuna Shop</strong>
+                <span>Mua sắm trực tuyến với giao diện sáng, nhanh và dễ dùng.</span>
+            </div>
+            <div>© 2026 Tuna Shop</div>
         </div>
     </footer>
 

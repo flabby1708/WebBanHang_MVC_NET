@@ -4,11 +4,32 @@ using SV22T1020497.BusinessLayers;
 using SV22T1020497.Models.Catalog;
 using SV22T1020497.Models.Common;
 using SV22T1020497.Shop.Models;
+using System.Globalization;
+using System.Text;
 
 namespace SV22T1020497.Shop.Controllers
 {
     public class ProductController : Controller
     {
+        private static string NormalizeProductName(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                return string.Empty;
+
+            string normalized = value.Trim().Normalize(NormalizationForm.FormD);
+            var builder = new StringBuilder(normalized.Length);
+
+            foreach (char c in normalized)
+            {
+                if (CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
+                    builder.Append(char.ToLowerInvariant(c));
+            }
+
+            return builder.ToString()
+                .Replace('đ', 'd')
+                .Replace('Đ', 'd');
+        }
+
         public async Task<IActionResult> Index(string searchValue = "", int categoryId = 0, decimal minPrice = 0, decimal maxPrice = 0, int page = 1)
         {
             ViewData["Title"] = "Sản phẩm";
@@ -24,8 +45,36 @@ namespace SV22T1020497.Shop.Controllers
                 PageSize = 12
             };
 
-            var result = await CatalogDataService.ListProductsAsync(input);
-            result.DataItems = result.DataItems.Where(x => x.IsSelling).ToList();
+            var fullInput = new ProductSearchInput
+            {
+                SearchValue = input.SearchValue,
+                CategoryID = input.CategoryID,
+                MinPrice = input.MinPrice,
+                MaxPrice = input.MaxPrice,
+                SupplierID = input.SupplierID,
+                Page = 1,
+                PageSize = 0
+            };
+
+            var allProducts = await CatalogDataService.ListProductsAsync(fullInput);
+            var distinctProducts = allProducts.DataItems
+                .Where(x => x.IsSelling)
+                .GroupBy(x => NormalizeProductName(x.ProductName))
+                .Select(g => g.OrderBy(x => x.ProductID).First())
+                .OrderBy(x => x.ProductName)
+                .ToList();
+
+            int currentPage = Math.Max(input.Page, 1);
+            var result = new PagedResult<Product>
+            {
+                Page = currentPage,
+                PageSize = input.PageSize,
+                RowCount = distinctProducts.Count,
+                DataItems = distinctProducts
+                    .Skip((currentPage - 1) * input.PageSize)
+                    .Take(input.PageSize)
+                    .ToList()
+            };
 
             var model = new ProductListViewModel
             {

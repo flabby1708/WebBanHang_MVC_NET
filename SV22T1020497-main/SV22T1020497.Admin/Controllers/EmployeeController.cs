@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SV22T1020497.Admin.AppCodes;
 using SV22T1020497.BusinessLayers;
@@ -7,6 +8,7 @@ using SV22T1020497.Models.HR;
 
 namespace SV22T1020497.Admin.Controllers
 {
+    [Authorize(Roles = WebUserRoles.SystemAdmin)]
     public class EmployeeController : Controller
     {
         public async Task<IActionResult> Index(string searchValue = "", int page = 1)

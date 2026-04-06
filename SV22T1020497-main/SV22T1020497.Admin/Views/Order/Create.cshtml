@@ -1,53 +1,109 @@
+@model SV22T1020497.Admin.Models.OrderCreateViewModel
 @{
     ViewBag.Title = "Lập đơn hàng";
 }
+
 <div class="row">
-    <div class="col-4">
+    <div class="col-lg-4">
         <div class="card card-outline card-primary h-100">
             <div class="card-header">
                 <h5 class="mb-0"><i class="bi bi-search"></i> Lựa chọn hàng cần bán</h5>
             </div>
             <div class="card-body">
-                <form method="get" class="mb-3">
+                <form method="get" asp-action="Create" class="mb-3">
                     <div class="input-group">
-                        <input class="form-control" name="searchValue" placeholder="Nhập tên mặt hàng cần tìm" autofocus />
+                        <input class="form-control" name="searchValue" value="@Model.SearchValue" placeholder="Nhập tên mặt hàng cần tìm" autofocus />
                         <button class="btn btn-primary"><i class="bi bi-search"></i></button>
                     </div>
                 </form>
-                @for (int i = 1; i <= 3; i++)
+
+                @if (Model.Products.DataItems.Any())
                 {
-                    <form method="post" class="border rounded p-2 mb-2">
-                        <strong>Macbook Pro 15" M2 2023</strong>
-                        <div class="row mt-2">
-                            <div class="col-4">
-                                <img src="~/images/products/demo.png" class="img-fluid border" style="max-height:100px" />
-                            </div>
-                            <div class="col-8">
-                                <div class="row g-2">
-                                    <div class="col-7">
-                                        <label class="form-label mb-0">Giá</label>
-                                        <input class="form-control form-control-sm money-input" value="45000000" />
-                                    </div>
-                                    <div class="col-5">
-                                        <label class="form-label mb-0">SL</label>
-                                        <input type="number" min="1" value="1" class="form-control form-control-sm" />
-                                    </div>
+                    foreach (var item in Model.Products.DataItems)
+                    {
+                        var imageUrl = ProductImageHelper.ResolveProductImageUrl(item.ProductName, item.Photo);
+                        <form method="post" asp-action="AddToCart" class="border rounded p-2 mb-2 cart-draft-form">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="productId" value="@item.ProductID" />
+                            <input type="hidden" name="searchValue" value="@Model.SearchValue" />
+                            <input type="hidden" name="page" value="@Model.Page" />
+                            <input type="hidden" name="customerId" value="@Model.CustomerID" data-draft-field="customerId" />
+                            <input type="hidden" name="deliveryProvince" value="@Model.DeliveryProvince" data-draft-field="deliveryProvince" />
+                            <input type="hidden" name="deliveryAddress" value="@Model.DeliveryAddress" data-draft-field="deliveryAddress" />
+
+                            <strong>@item.ProductName</strong>
+                            <div class="small text-muted">@item.Unit</div>
+
+                            <div class="row mt-2">
+                                <div class="col-4">
+                                    @if (!string.IsNullOrWhiteSpace(imageUrl))
+                                    {
+                                        <img src="@imageUrl" class="img-fluid border rounded admin-order-product-image" alt="@item.ProductName" />
+                                    }
+                                    else
+                                    {
+                                        <div class="admin-order-product-image admin-order-product-image--empty border rounded d-flex align-items-center justify-content-center">
+                                            <i class="bi bi-image text-muted fs-2"></i>
+                                        </div>
+                                    }
                                 </div>
-                                <button class="btn btn-sm btn-primary mt-2 w-100"><i class="bi bi-cart-plus"></i> Thêm vào giỏ</button>
+                                <div class="col-8">
+                                    <div class="row g-2">
+                                        <div class="col-7">
+                                            <label class="form-label mb-0">Giá</label>
+                                            <input class="form-control form-control-sm money-input" name="salePrice" value="@item.Price" />
+                                        </div>
+                                        <div class="col-5">
+                                            <label class="form-label mb-0">SL</label>
+                                            <input type="number" min="1" name="quantity" value="1" class="form-control form-control-sm" />
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-sm btn-primary mt-2 w-100"><i class="bi bi-cart-plus"></i> Thêm vào giỏ</button>
+                                </div>
                             </div>
-                        </div>
-                    </form>
+                        </form>
+                    }
+                }
+                else
+                {
+                    <div class="alert alert-info mb-0">Không tìm thấy mặt hàng phù hợp.</div>
                 }
             </div>
             <div class="card-footer">
                 <ul class="pagination justify-content-between mb-0">
-                    <li class="page-item"><a class="page-link"><i class="bi bi-chevron-left"></i></a></li>
-                    <li class="page-item"><a class="page-link"><i class="bi bi-chevron-right"></i></a></li>
+                    @if (Model.Products.HasPreviousPage)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" asp-action="Create" asp-route-searchValue="@Model.SearchValue" asp-route-page="@(Model.Page - 1)"><i class="bi bi-chevron-left"></i></a>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="bi bi-chevron-left"></i></span>
+                        </li>
+                    }
+                    <li class="page-item disabled">
+                        <span class="page-link">Trang @Model.Products.Page / @Math.Max(Model.Products.PageCount, 1)</span>
+                    </li>
+                    @if (Model.Products.HasNextPage)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" asp-action="Create" asp-route-searchValue="@Model.SearchValue" asp-route-page="@(Model.Page + 1)"><i class="bi bi-chevron-right"></i></a>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="bi bi-chevron-right"></i></span>
+                        </li>
+                    }
                 </ul>
             </div>
         </div>
     </div>
-    <div class="col-8">
+
+    <div class="col-lg-8">
         <div class="row">
             <div class="col-12">
                 <div class="card card-outline card-success">
@@ -59,46 +115,61 @@
                             <thead class="table-success">
                                 <tr>
                                     <th class="text-center">#</th>
-                                    <th style="width:auto">Tên hàng</th>
+                                    <th>Tên hàng</th>
                                     <th class="text-center" style="width:100px">ĐVT</th>
                                     <th class="text-center" style="width:100px">SL</th>
                                     <th class="text-end" style="width:150px">Giá</th>
                                     <th class="text-end" style="width:150px">Thành tiền</th>
-                                    <th style="width:80px"></th>
+                                    <th style="width:90px"></th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @for (int i = 1; i <= 3; i++)
+                                @if (Model.Cart.Any())
+                                {
+                                    var index = 1;
+                                    foreach (var item in Model.Cart)
+                                    {
+                                        <tr>
+                                            <td class="text-center">@index</td>
+                                            <td>@item.ProductName</td>
+                                            <td class="text-center">@item.Unit</td>
+                                            <td class="text-center">@item.Quantity</td>
+                                            <td class="text-end">@item.SalePrice.ToString("N0")</td>
+                                            <td class="text-end">@item.TotalPrice.ToString("N0")</td>
+                                            <td class="text-end text-nowrap">
+                                                <a class="btn btn-sm btn-primary open-modal cart-draft-link" asp-action="EditCartItem" asp-route-productId="@item.ProductID" asp-route-searchValue="@Model.SearchValue" asp-route-page="@Model.Page" asp-route-customerId="@Model.CustomerID" asp-route-deliveryProvince="@Model.DeliveryProvince" asp-route-deliveryAddress="@Model.DeliveryAddress"><i class="bi bi-pencil"></i></a>
+                                                <a class="btn btn-sm btn-danger open-modal cart-draft-link" asp-action="DeleteCartItem" asp-route-productId="@item.ProductID" asp-route-searchValue="@Model.SearchValue" asp-route-page="@Model.Page" asp-route-customerId="@Model.CustomerID" asp-route-deliveryProvince="@Model.DeliveryProvince" asp-route-deliveryAddress="@Model.DeliveryAddress"><i class="bi bi-dash"></i></a>
+                                            </td>
+                                        </tr>
+                                        index++;
+                                    }
+                                }
+                                else
                                 {
                                     <tr>
-                                        <td class="text-center">@i</td>
-                                        <td>Laptop HP Gaming VICTUS</td>
-                                        <td class="text-center">Bộ</td>
-                                        <td class="text-center">1</td>
-                                        <td class="text-end">23.990.000</td>
-                                        <td class="text-end">23.990.000</td>
-                                        <td class="text-end text-nowrap">
-                                            <a class="btn btn-sm btn-primary open-modal" href="~/Order/EditCartItem?productId=456"><i class="bi bi-pencil"></i></a>
-                                            <a class="btn btn-sm btn-danger open-modal" href="~/Order/DeleteCartItem?productId=456"><i class="bi bi-dash"></i></a>
-                                        </td>
+                                        <td colspan="7" class="text-center text-muted py-4">Chưa có mặt hàng nào trong giỏ.</td>
                                     </tr>
                                 }
                             </tbody>
                             <tfoot>
                                 <tr>
                                     <th colspan="5" class="text-end">Tổng cộng:</th>
-                                    <th class="text-end">71,970,000</th>
+                                    <th class="text-end">@Model.CartTotal.ToString("N0")</th>
                                     <th></th>
                                 </tr>
                             </tfoot>
                         </table>
-                        <div class="text-end">
-                            <a class="btn btn-sm btn-danger mt-2 open-modal" href="~/Order/ClearCart"><i class="bi bi-trash"></i> Xóa giỏ hàng</a>
-                        </div>
+                        @if (Model.Cart.Any())
+                        {
+                            <div class="text-end">
+                                <a class="btn btn-sm btn-danger mt-2 open-modal cart-draft-link" asp-action="ClearCart" asp-route-searchValue="@Model.SearchValue" asp-route-page="@Model.Page" asp-route-customerId="@Model.CustomerID" asp-route-deliveryProvince="@Model.DeliveryProvince" asp-route-deliveryAddress="@Model.DeliveryAddress"><i class="bi bi-trash"></i> Xóa giỏ hàng</a>
+                            </div>
+                        }
                     </div>
                 </div>
             </div>
         </div>
+
         <div class="row mt-3">
             <div class="col-12">
                 <div class="card card-outline card-info">
@@ -106,20 +177,49 @@
                         <h5 class="mb-0"><i class="bi bi-person"></i> Thông tin khách hàng và nơi giao hàng</h5>
                     </div>
                     <div class="card-body">
-                        <form method="post">
+                        <form method="post" asp-action="Create">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" asp-for="SearchValue" />
+                            <input type="hidden" asp-for="Page" />
+
+                            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
                             <div class="row mb-3">
-                                <label class="col-md-2 col-form-label">Khách hàng</label>
-                                <div class="col-md-10"><select class="form-select"><option>-- Chọn khách hàng --</option></select></div>
+                                <label asp-for="CustomerID" class="col-md-2 col-form-label">Khách hàng</label>
+                                <div class="col-md-10">
+                                    <select asp-for="CustomerID" class="form-select" id="customerSelect">
+                                        <option value="">-- Chọn khách hàng --</option>
+                                        @foreach (var customer in Model.Customers)
+                                        {
+                                            <option value="@customer.CustomerID"
+                                                    data-address="@customer.Address"
+                                                    data-province="@customer.Province">
+                                                @customer.CustomerName
+                                            </option>
+                                        }
+                                    </select>
+                                    <span asp-validation-for="CustomerID" class="text-danger"></span>
+                                </div>
                             </div>
                             <div class="row mb-3">
-                                <label class="col-md-2 col-form-label">Tỉnh/thành</label>
-                                <div class="col-md-10"><select class="form-select"><option>-- Chọn tỉnh/thành giao hàng --</option></select></div>
+                                <label asp-for="DeliveryProvince" class="col-md-2 col-form-label">Tỉnh/thành</label>
+                                <div class="col-md-10">
+                                    <input asp-for="DeliveryProvince" type="hidden" />
+                                    <input type="text" id="DeliveryProvinceDisplay" class="form-control" value="@Model.DeliveryProvince" readonly />
+                                    <div class="form-text">Tỉnh/thành được lấy theo dữ liệu của khách hàng đã chọn.</div>
+                                    <span asp-validation-for="DeliveryProvince" class="text-danger"></span>
+                                </div>
                             </div>
                             <div class="row mb-3">
-                                <label class="col-md-2 col-form-label">Địa chỉ</label>
-                                <div class="col-md-10"><textarea class="form-control"></textarea></div>
+                                <label asp-for="DeliveryAddress" class="col-md-2 col-form-label">Địa chỉ</label>
+                                <div class="col-md-10">
+                                    <textarea asp-for="DeliveryAddress" class="form-control" rows="3"></textarea>
+                                    <span asp-validation-for="DeliveryAddress" class="text-danger"></span>
+                                </div>
                             </div>
-                            <div class="text-end"><button class="btn btn-primary"><i class="bi bi-check-circle"></i> Lập đơn hàng</button></div>
+                            <div class="text-end">
+                                <button type="submit" class="btn btn-primary" disabled="@(!Model.Cart.Any())"><i class="bi bi-check-circle"></i> Lập đơn hàng</button>
+                            </div>
                         </form>
                     </div>
                 </div>
@@ -127,3 +227,69 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const customerSelect = document.getElementById("customerSelect");
+            const provinceInput = document.getElementById("DeliveryProvince");
+            const provinceDisplay = document.getElementById("DeliveryProvinceDisplay");
+            const addressInput = document.getElementById("DeliveryAddress");
+            const draftForms = document.querySelectorAll(".cart-draft-form");
+            const draftLinks = document.querySelectorAll(".cart-draft-link");
+
+            if (!customerSelect || !provinceInput || !provinceDisplay || !addressInput) return;
+
+            function syncDraftTargets() {
+                draftForms.forEach(function (form) {
+                    const customerField = form.querySelector('[data-draft-field="customerId"]');
+                    const provinceField = form.querySelector('[data-draft-field="deliveryProvince"]');
+                    const addressField = form.querySelector('[data-draft-field="deliveryAddress"]');
+
+                    if (customerField) customerField.value = customerSelect.value || "";
+                    if (provinceField) provinceField.value = provinceInput.value || "";
+                    if (addressField) addressField.value = addressInput.value || "";
+                });
+
+                draftLinks.forEach(function (link) {
+                    const url = new URL(link.href, window.location.origin);
+                    url.searchParams.set("customerId", customerSelect.value || "");
+                    url.searchParams.set("deliveryProvince", provinceInput.value || "");
+                    url.searchParams.set("deliveryAddress", addressInput.value || "");
+                    link.href = url.pathname + url.search;
+                });
+            }
+
+            function syncCustomerProvince(forceAddress) {
+                const selected = customerSelect.options[customerSelect.selectedIndex];
+                if (!selected || !selected.value) {
+                    provinceInput.value = "";
+                    provinceDisplay.value = "";
+                    if (forceAddress) {
+                        addressInput.value = "";
+                    }
+                    syncDraftTargets();
+                    return;
+                }
+
+                const customerProvince = selected.dataset.province || "";
+                provinceInput.value = customerProvince;
+                provinceDisplay.value = customerProvince;
+
+                if (forceAddress || !addressInput.value.trim()) {
+                    addressInput.value = selected.dataset.address || "";
+                }
+
+                syncDraftTargets();
+            }
+
+            customerSelect.addEventListener("change", function () {
+                syncCustomerProvince(true);
+            });
+
+            addressInput.addEventListener("input", syncDraftTargets);
+            syncCustomerProvince(false);
+        });
+    </script>
+}

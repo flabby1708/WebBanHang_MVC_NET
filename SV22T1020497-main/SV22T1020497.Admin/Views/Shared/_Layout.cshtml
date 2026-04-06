@@ -1,72 +1,80 @@
 <!doctype html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>LiteCommerce</title>
+    <title>@(ViewBag.Title ?? "TNP Shop Admin")</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-    <link rel="stylesheet" href="~/lib/flatpickr/flatpickr.min.css">    
-    <link rel="stylesheet" href="~/lib/bootstrap/bootstrap-icons.min.css" />    
+    <link rel="stylesheet" href="~/lib/flatpickr/flatpickr.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap/bootstrap-icons.min.css" />
     <link rel="stylesheet" href="~/lib/adminlte/css/adminlte.css" />
     <link rel="stylesheet" href="~/css/site.css" />
     @await RenderSectionAsync("Styles", required: false)
 </head>
-<body class="layout-fixed fixed-header fixed-footer sidebar-expand-lg sidebar-open bg-body-tertiary">
-    <div class="app-wrapper">
-        @await Html.PartialAsync("_Header")
-        @await Html.PartialAsync("_Sidebar")        
-        <main class="app-main">
-            <div class="app-content-header">
-                <div class="container-fluid">
-                    <div class="row">
-                        <div class="col-sm-4">
-                            <h5 class="mb-0">@ViewBag.Title</h5>
-                        </div>
-                        <div class="col-sm-8">
-                            <div class="input-group d-flex justify-content-end">
+<body class="layout-fixed fixed-header sidebar-expand-lg app-loaded">
+    <div class="admin-shell">
+        <div class="admin-shell__backdrop"></div>
+        <div class="app-wrapper">
+            @await Html.PartialAsync("_Header")
+            @await Html.PartialAsync("_Sidebar")
+
+            <main class="app-main admin-main">
+                <section class="app-content-header admin-page-header">
+                    <div class="container-fluid">
+                        <div class="admin-page-header__inner">
+                            <div class="admin-page-header__content">
+                                <span class="admin-page-header__eyebrow">Bảng điều khiển quản trị</span>
+                                <h1 class="admin-page-header__title">@ViewBag.Title</h1>
+                            </div>
+                            <div class="admin-page-header__toolbar">
                                 @await RenderSectionAsync("PageToolBar", required: false)
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-            <div class="app-content">
-                <div class="container-fluid">
-                    @if (TempData["SuccessMessage"] != null)
-                    {
-                        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
-                    }
-                    @if (TempData["ErrorMessage"] != null)
-                    {
-                        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
-                    }
-                    @RenderBody()
-                </div>
-            </div>
-        </main>
-        @await Html.PartialAsync("_Footer")        
-    </div>
-    <button id="scrollToTop" onclick="window.scrollTo(0,0)">
-        <i class="bi bi-arrow-up-circle"></i>
-    </button>
-    <div class="modal fade" id="dialogModal" tabindex="-1" aria-hidden="true" style="display:none;">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content">                
-            </div>
+                </section>
+
+                <section class="app-content">
+                    <div class="container-fluid admin-page-body">
+                        @if (TempData["SuccessMessage"] != null)
+                        {
+                            <div class="alert alert-success admin-alert">@TempData["SuccessMessage"]</div>
+                        }
+                        @if (TempData["ErrorMessage"] != null)
+                        {
+                            <div class="alert alert-danger admin-alert">@TempData["ErrorMessage"]</div>
+                        }
+                        @RenderBody()
+                    </div>
+                </section>
+            </main>
+
+            @await Html.PartialAsync("_Footer")
         </div>
     </div>
+
+    <button id="scrollToTop" type="button" onclick="window.scrollTo({ top: 0, behavior: 'smooth' })">
+        <i class="bi bi-arrow-up"></i>
+    </button>
+
+    <div class="modal fade" id="dialogModal" tabindex="-1" aria-hidden="true" style="display:none;">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content"></div>
+        </div>
+    </div>
+
     <script src="~/lib/flatpickr/flatpickr.min.js"></script>
-    <script src="~/lib/flatpickr/l10n/vn.js"></script>    
-    <script src="~/lib/autonumeric/autonumeric.js"></script>    
+    <script src="~/lib/flatpickr/l10n/vn.js"></script>
+    <script src="~/lib/autonumeric/autonumeric.js"></script>
     <script src="~/lib/bootstrap/bootstrap.bundle.min.js"></script>
     <script type="module" src="~/lib/adminlte/js/adminlte.js"></script>
     <script src="~/js/site.js"></script>
     <script>
-        document.addEventListener("DOMContentLoaded", function () {            
+        document.addEventListener("DOMContentLoaded", function () {
             flatpickr(".date-picker", {
                 dateFormat: "d/m/Y",
                 locale: "vn",
                 allowInput: false
             });
+
             document.querySelectorAll(".money-input").forEach(element => {
                 new AutoNumeric(element, {
                     digitGroupSeparator: '.',
@@ -75,8 +83,9 @@
                     unformatOnSubmit: true
                 });
             });
-            document.querySelectorAll(".open-modal").forEach(element => {                
-                 element.addEventListener("click", function (e) {                    
+
+            document.querySelectorAll(".open-modal").forEach(element => {
+                element.addEventListener("click", function (e) {
                     openModal(e, this);
                 });
             });

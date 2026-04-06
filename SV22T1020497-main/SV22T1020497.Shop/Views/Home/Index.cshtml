@@ -2,16 +2,36 @@
     ViewData["Title"] = "Trang chủ";
 }
 
-<div class="p-4 p-lg-5 mb-4 bg-white rounded-3 shadow-sm">
-    <div class="container-fluid py-2">
-        <h1 class="display-6 fw-semibold">LiteCommerce Shop</h1>
-        <p class="col-lg-8 fs-5 text-secondary mb-4">
-            Nền tảng mua sắm dành cho khách hàng. Mình đã dựng xong phần nền tài khoản để bạn tiếp tục làm danh mục sản phẩm, giỏ hàng và đơn hàng.
-        </p>
-        <div class="d-flex flex-wrap gap-2">
-            <a class="btn btn-dark btn-lg" asp-controller="Product" asp-action="Index">Xem sản phẩm</a>
-            <a class="btn btn-primary btn-lg" asp-controller="Account" asp-action="Register">Tạo tài khoản</a>
-            <a class="btn btn-outline-secondary btn-lg" asp-controller="Account" asp-action="Login">Đăng nhập</a>
+<section class="shop-hero">
+    <div class="row align-items-center g-4">
+        <div class="col-lg-7">
+            <span class="shop-hero__eyebrow">Mua sắm trực tuyến</span>
+            <h1 class="shop-hero__title">Tuna Shop mang lại trải nghiệm mua hàng sáng sủa, nhanh và dễ chọn hơn.</h1>
+            <p class="shop-hero__text">
+                Khám phá danh mục sản phẩm đã được làm mới về hình ảnh, bố cục và cảm giác sử dụng.
+                Mọi luồng backend vẫn giữ nguyên, còn phần hiển thị được tinh chỉnh để trông hiện đại và thân thiện hơn.
+            </p>
+            <div class="shop-hero__actions">
+                <a class="btn btn-primary btn-lg shop-btn-primary" asp-controller="Product" asp-action="Index">Khám phá sản phẩm</a>
+                <a class="btn btn-outline-primary btn-lg shop-btn-soft" asp-controller="Account" asp-action="Register">Tạo tài khoản</a>
+                <a class="btn btn-outline-primary btn-lg shop-btn-soft" asp-controller="Account" asp-action="Login">Đăng nhập</a>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="shop-chip-grid">
+                <div class="shop-chip-card">
+                    <strong>Danh mục trực quan</strong>
+                    <span>Bộ lọc rõ ràng, card sản phẩm dễ xem hơn.</span>
+                </div>
+                <div class="shop-chip-card">
+                    <strong>Ảnh đồng bộ</strong>
+                    <span>Tận dụng đúng thư mục ảnh sản phẩm hiện có.</span>
+                </div>
+                <div class="shop-chip-card">
+                    <strong>Màu sắc tươi sáng</strong>
+                    <span>Tông xanh ngọc và xanh dương nhẹ mắt hơn.</span>
+                </div>
+            </div>
         </div>
     </div>
-</div>
+</section>

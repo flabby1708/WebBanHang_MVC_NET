@@ -1,86 +1,129 @@
 @model ProductListViewModel
 @{
     ViewData["Title"] = "Sản phẩm";
+    int currentPage = Model.Data.Page;
+    int totalPages = Model.Data.PageCount;
+    int startPage = Math.Max(1, currentPage - 2);
+    int endPage = Math.Min(totalPages, currentPage + 2);
 }
 
 <div class="row g-4">
     <div class="col-lg-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <h2 class="h5 mb-3">Tìm kiếm</h2>
-                <form method="get" asp-action="Index">
-                    <div class="mb-3">
-                        <label class="form-label">Tên hàng</label>
-                        <input name="searchValue" value="@Model.SearchInput.SearchValue" class="form-control" />
-                    </div>
+        <aside class="shop-filter-card">
+            <span class="shop-filter-card__eyebrow">Bộ lọc thông minh</span>
+            <h2 class="shop-filter-card__title">Tìm đúng món bạn cần</h2>
+            <p class="shop-filter-card__subtitle mb-4">Lọc theo tên, loại hàng và khoảng giá để rút ngắn thời gian tìm kiếm.</p>
 
-                    <div class="mb-3">
-                        <label class="form-label">Loại hàng</label>
-                        <select name="categoryId" class="form-select" asp-items="Model.Categories"></select>
-                    </div>
+            <form method="get" asp-action="Index">
+                <div class="mb-3">
+                    <label class="form-label">Tên hàng</label>
+                    <input name="searchValue" value="@Model.SearchInput.SearchValue" class="form-control" />
+                </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Giá từ</label>
-                        <input name="minPrice" value="@Model.SearchInput.MinPrice" class="form-control" type="number" min="0" />
-                    </div>
+                <div class="mb-3">
+                    <label class="form-label">Loại hàng</label>
+                    <select name="categoryId" class="form-select" asp-items="Model.Categories"></select>
+                </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Đến giá</label>
-                        <input name="maxPrice" value="@Model.SearchInput.MaxPrice" class="form-control" type="number" min="0" />
-                    </div>
+                <div class="mb-3">
+                    <label class="form-label">Giá từ</label>
+                    <input name="minPrice" value="@Model.SearchInput.MinPrice" class="form-control" type="number" min="0" />
+                </div>
 
-                    <button type="submit" class="btn btn-primary w-100">Áp dụng</button>
-                </form>
-            </div>
-        </div>
+                <div class="mb-4">
+                    <label class="form-label">Đến giá</label>
+                    <input name="maxPrice" value="@Model.SearchInput.MaxPrice" class="form-control" type="number" min="0" />
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 shop-btn-primary">Áp dụng bộ lọc</button>
+            </form>
+        </aside>
     </div>
 
     <div class="col-lg-9">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h1 class="h3 mb-0">Danh mục sản phẩm</h1>
-            <span class="text-secondary">@Model.Data.RowCount sản phẩm</span>
+        <div class="shop-toolbar">
+            <div>
+                <span class="shop-section__eyebrow">Danh mục nổi bật</span>
+                <h1 class="shop-section__title">Sản phẩm dành cho bạn</h1>
+                <div class="shop-section__subtitle">Giao diện mới ưu tiên hình ảnh rõ ràng và thao tác nhanh hơn.</div>
+            </div>
+            <span class="shop-toolbar__count">@Model.Data.RowCount sản phẩm</span>
         </div>
 
         <div class="row g-4">
             @foreach (var item in Model.Data.DataItems)
             {
+                string? imageUrl = ProductImageHelper.ResolveProductImageUrl(item.ProductName, item.Photo);
+
                 <div class="col-md-6 col-xl-4">
-                    <div class="card h-100 border-0 shadow-sm">
-                        <div class="ratio ratio-4x3 bg-body-secondary rounded-top overflow-hidden">
-                            @if (!string.IsNullOrWhiteSpace(item.Photo))
+                    <article class="shop-product-card">
+                        <div class="ratio ratio-4x3 shop-product-card__media">
+                            @if (!string.IsNullOrWhiteSpace(imageUrl))
                             {
-                                <img src="~/images/products/@item.Photo"
+                                <img src="@imageUrl"
                                      alt="@item.ProductName"
-                                     class="w-100 h-100 object-fit-cover"
-                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                                     class="w-100 h-100 object-fit-contain p-3" />
                             }
-                            <div class="d-flex align-items-center justify-content-center text-secondary" style="display:@(string.IsNullOrWhiteSpace(item.Photo) ? "flex" : "none")">
-                                Không có ảnh
-                            </div>
-                        </div>
-                        <div class="card-body d-flex flex-column">
-                            <h2 class="h5">@item.ProductName</h2>
-                            <p class="text-secondary small flex-grow-1">@(string.IsNullOrWhiteSpace(item.ProductDescription) ? "Đang cập nhật mô tả sản phẩm." : item.ProductDescription)</p>
-                            <div class="d-flex justify-content-between align-items-center mt-3">
-                                <div>
-                                    <div class="fw-semibold text-danger">@item.Price.ToString("N0") đ</div>
-                                    <div class="small text-secondary">Đơn vị: @item.Unit</div>
+                            else
+                            {
+                                <div class="d-flex align-items-center justify-content-center text-secondary">
+                                    Không có ảnh
                                 </div>
-                                <a asp-action="Details" asp-route-id="@item.ProductID" class="btn btn-outline-primary btn-sm">Xem chi tiết</a>
+                            }
+                        </div>
+                        <div class="shop-product-card__body">
+                            <h2 class="shop-product-card__title">@item.ProductName</h2>
+                            <p class="shop-product-card__desc">@(string.IsNullOrWhiteSpace(item.ProductDescription) ? "Đang cập nhật mô tả sản phẩm." : item.ProductDescription)</p>
+                            <div class="shop-product-card__footer">
+                                <div>
+                                    <div class="shop-price">@item.Price.ToString("N0") đ</div>
+                                    <div class="shop-unit">Đơn vị: @item.Unit</div>
+                                </div>
+                                <a asp-action="Details" asp-route-id="@item.ProductID" class="btn btn-outline-primary shop-btn-outline">Xem chi tiết</a>
                             </div>
                         </div>
-                    </div>
+                    </article>
                 </div>
             }
         </div>
 
-        @if (Model.Data.PageCount > 1)
+        @if (totalPages > 1)
         {
-            <nav class="mt-4">
-                <ul class="pagination">
-                    @for (int i = 1; i <= Model.Data.PageCount; i++)
+            <nav class="mt-4 d-flex justify-content-center" aria-label="Product pagination">
+                <ul class="pagination pagination-sm shop-pagination mb-0 flex-wrap justify-content-center">
+                    <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                        <a class="page-link"
+                           asp-action="Index"
+                           asp-route-searchValue="@Model.SearchInput.SearchValue"
+                           asp-route-categoryId="@Model.SearchInput.CategoryID"
+                           asp-route-minPrice="@Model.SearchInput.MinPrice"
+                           asp-route-maxPrice="@Model.SearchInput.MaxPrice"
+                           asp-route-page="@(currentPage - 1)"
+                           tabindex="@(currentPage == 1 ? "-1" : null)"
+                           aria-disabled="@(currentPage == 1 ? "true" : "false")">Trước</a>
+                    </li>
+
+                    @if (startPage > 1)
                     {
-                        <li class="page-item @(i == Model.Data.Page ? "active" : "")">
+                        <li class="page-item">
+                            <a class="page-link"
+                               asp-action="Index"
+                               asp-route-searchValue="@Model.SearchInput.SearchValue"
+                               asp-route-categoryId="@Model.SearchInput.CategoryID"
+                               asp-route-minPrice="@Model.SearchInput.MinPrice"
+                               asp-route-maxPrice="@Model.SearchInput.MaxPrice"
+                               asp-route-page="1">1</a>
+                        </li>
+
+                        @if (startPage > 2)
+                        {
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        }
+                    }
+
+                    @for (int i = startPage; i <= endPage; i++)
+                    {
+                        <li class="page-item @(i == currentPage ? "active" : "")">
                             <a class="page-link"
                                asp-action="Index"
                                asp-route-searchValue="@Model.SearchInput.SearchValue"
@@ -90,6 +133,36 @@
                                asp-route-page="@i">@i</a>
                         </li>
                     }
+
+                    @if (endPage < totalPages)
+                    {
+                        @if (endPage < totalPages - 1)
+                        {
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        }
+
+                        <li class="page-item">
+                            <a class="page-link"
+                               asp-action="Index"
+                               asp-route-searchValue="@Model.SearchInput.SearchValue"
+                               asp-route-categoryId="@Model.SearchInput.CategoryID"
+                               asp-route-minPrice="@Model.SearchInput.MinPrice"
+                               asp-route-maxPrice="@Model.SearchInput.MaxPrice"
+                               asp-route-page="@totalPages">@totalPages</a>
+                        </li>
+                    }
+
+                    <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                        <a class="page-link"
+                           asp-action="Index"
+                           asp-route-searchValue="@Model.SearchInput.SearchValue"
+                           asp-route-categoryId="@Model.SearchInput.CategoryID"
+                           asp-route-minPrice="@Model.SearchInput.MinPrice"
+                           asp-route-maxPrice="@Model.SearchInput.MaxPrice"
+                           asp-route-page="@(currentPage + 1)"
+                           tabindex="@(currentPage == totalPages ? "-1" : null)"
+                           aria-disabled="@(currentPage == totalPages ? "true" : "false")">Sau</a>
+                    </li>
                 </ul>
             </nav>
         }

@@ -1,84 +1,280 @@
 @model SV22T1020497.Admin.Models.OrderSearchResultViewModel
 @{
     Layout = null;
+    var displayPages = Model.Data.GetDisplayPages(2);
 }
-<div class="mb-2 text-muted">
-    Danh sách này có <strong>@Model.Data.RowCount</strong> đơn hàng
-</div>
-<div class="card">
-    <div class="card-body p-1">
-        <table class="table table-bordered table-hover mb-0 align-middle">
-            <thead class="table-secondary">
-                <tr>
-                    <th>Ngày đặt hàng</th>
-                    <th>Tên khách hàng</th>
-                    <th>Điện thoại</th>
-                    <th>Ngày duyệt</th>
-                    <th>Nhân viên xử lý</th>
-                    <th class="text-end">Tổng tiền</th>
-                    <th class="text-center" style="width:160px;">Trạng thái</th>
-                    <th class="text-center" style="width:40px"></th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (Model.Data.DataItems.Any())
-                {
-                    foreach (var item in Model.Data.DataItems)
-                    {
-                        string badgeClass = item.Status switch
-                        {
-                            OrderStatusEnum.New => "bg-warning text-dark",
-                            OrderStatusEnum.Accepted => "bg-info",
-                            OrderStatusEnum.Shipping => "bg-primary",
-                            OrderStatusEnum.Completed => "bg-success",
-                            OrderStatusEnum.Rejected => "bg-danger",
-                            OrderStatusEnum.Cancelled => "bg-secondary",
-                            _ => "bg-secondary"
-                        };
 
-                        <tr>
-                            <td>@item.OrderTime.ToString("dd/MM/yyyy HH:mm")</td>
-                            <td>@item.CustomerName</td>
-                            <td>@item.CustomerPhone</td>
-                            <td>@(item.AcceptTime?.ToString("dd/MM/yyyy HH:mm") ?? "--")</td>
-                            <td>@(string.IsNullOrWhiteSpace(item.EmployeeName) ? "--" : item.EmployeeName)</td>
-                            <td class="text-end">@(Model.OrderTotals.ContainsKey(item.OrderID) ? Model.OrderTotals[item.OrderID].ToString("N0") : "0")</td>
-                            <td class="text-center">
-                                <span class="badge @badgeClass">@item.Status.GetDescription()</span>
-                            </td>
-                            <td class="text-center text-nowrap">
-                                <a href="~/Order/Detail/@item.OrderID" class="btn btn-sm btn-primary">
-                                    <i class="bi bi-receipt"></i>
-                                </a>
-                            </td>
-                        </tr>
-                    }
-                }
-                else
-                {
-                    <tr>
-                        <td colspan="8" class="text-center text-muted py-4">Không tìm thấy đơn hàng phù hợp.</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+<style>
+    .order-search-shell .result-summary {
+        color: #64748b;
+        margin-bottom: 0.75rem;
+    }
+
+    .order-search-shell .search-card {
+        border: 0;
+        border-radius: 1rem;
+        overflow: hidden;
+        box-shadow: 0 14px 35px rgba(15, 23, 42, 0.08);
+    }
+
+    .order-search-shell .table-wrap {
+        overflow-x: auto;
+    }
+
+    .order-search-shell .order-table {
+        min-width: 980px;
+        margin-bottom: 0;
+    }
+
+    .order-search-shell .order-table thead th {
+        border-bottom: 0;
+        background: #f8fafc;
+        color: #475569;
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        white-space: nowrap;
+    }
+
+    .order-search-shell .order-table tbody td {
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+        vertical-align: middle;
+    }
+
+    .order-search-shell .customer-name {
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .order-search-shell .customer-phone,
+    .order-search-shell .meta-text {
+        color: #64748b;
+    }
+
+    .order-search-shell .money-text {
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .order-search-shell .status-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 140px;
+        padding: 0.5rem 0.85rem;
+        border-radius: 999px;
+        font-size: 0.78rem;
+        font-weight: 700;
+    }
+
+    .order-search-shell .status-new {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .order-search-shell .status-accepted {
+        background: #dbeafe;
+        color: #1d4ed8;
+    }
+
+    .order-search-shell .status-shipping {
+        background: #e0f2fe;
+        color: #0369a1;
+    }
+
+    .order-search-shell .status-completed {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .order-search-shell .status-rejected {
+        background: #fee2e2;
+        color: #b91c1c;
+    }
+
+    .order-search-shell .status-cancelled {
+        background: #e2e8f0;
+        color: #475569;
+    }
+
+    .order-search-shell .action-btn {
+        width: 2.25rem;
+        height: 2.25rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0.75rem;
+        padding: 0;
+    }
+
+    .order-search-shell .pagination-panel {
+        border-top: 1px solid #e2e8f0;
+        background: #f8fafc;
+    }
+
+    .order-search-shell .pagination {
+        flex-wrap: wrap;
+        gap: 0.35rem;
+    }
+
+    .order-search-shell .page-link {
+        border-radius: 0.7rem;
+        min-width: 2.4rem;
+        text-align: center;
+        border: 1px solid #dbe4f0;
+        color: #334155;
+        background: #fff;
+        box-shadow: none;
+    }
+
+    .order-search-shell .page-item.active .page-link {
+        background: #2563eb;
+        border-color: #2563eb;
+        color: #fff;
+    }
+
+    .order-search-shell .page-item.disabled .page-link {
+        background: #eef2f7;
+        color: #94a3b8;
+    }
+</style>
+
+<div class="order-search-shell">
+    <div class="result-summary">
+        Danh sách này có <strong>@Model.Data.RowCount</strong> đơn hàng
     </div>
 
-    @if (Model.Data.PageCount > 1)
-    {
-        <div class="card-footer">
-            <ul class="pagination justify-content-center mb-0">
-                @for (int p = 1; p <= Model.Data.PageCount; p++)
-                {
-                    <li class="page-item @(p == Model.Data.Page ? "active" : "")">
+    <div class="card search-card">
+        <div class="card-body p-0">
+            <div class="table-wrap">
+                <table class="table table-hover order-table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Ngày đặt hàng</th>
+                            <th>Khách hàng</th>
+                            <th>Điện thoại</th>
+                            <th>Ngày duyệt</th>
+                            <th>Nhân viên xử lý</th>
+                            <th class="text-end">Tổng tiền</th>
+                            <th class="text-center" style="width:170px;">Trạng thái</th>
+                            <th class="text-center" style="width:72px;">Xem</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Data.DataItems.Any())
+                        {
+                            foreach (var item in Model.Data.DataItems)
+                            {
+                                var statusClass = item.Status switch
+                                {
+                                    OrderStatusEnum.New => "status-new",
+                                    OrderStatusEnum.Accepted => "status-accepted",
+                                    OrderStatusEnum.Shipping => "status-shipping",
+                                    OrderStatusEnum.Completed => "status-completed",
+                                    OrderStatusEnum.Rejected => "status-rejected",
+                                    OrderStatusEnum.Cancelled => "status-cancelled",
+                                    _ => "status-cancelled"
+                                };
+
+                                <tr>
+                                    <td>
+                                        <div class="fw-semibold">@item.OrderTime.ToString("dd/MM/yyyy")</div>
+                                        <div class="meta-text small">@item.OrderTime.ToString("HH:mm")</div>
+                                    </td>
+                                    <td>
+                                        <div class="customer-name">@item.CustomerName</div>
+                                    </td>
+                                    <td>
+                                        <div class="customer-phone">@item.CustomerPhone</div>
+                                    </td>
+                                    <td>
+                                        @if (item.AcceptTime.HasValue)
+                                        {
+                                            <div class="fw-semibold">@item.AcceptTime.Value.ToString("dd/MM/yyyy")</div>
+                                            <div class="meta-text small">@item.AcceptTime.Value.ToString("HH:mm")</div>
+                                        }
+                                        else
+                                        {
+                                            <span class="meta-text">--</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <span class="meta-text">@(string.IsNullOrWhiteSpace(item.EmployeeName) ? "--" : item.EmployeeName)</span>
+                                    </td>
+                                    <td class="text-end money-text">
+                                        @(Model.OrderTotals.ContainsKey(item.OrderID) ? Model.OrderTotals[item.OrderID].ToString("N0") : "0")
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="status-pill @statusClass">@item.Status.GetDescription()</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <a href="~/Order/Detail/@item.OrderID" class="btn btn-primary btn-sm action-btn" title="Xem chi tiết">
+                                            <i class="bi bi-receipt"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="8" class="text-center text-muted py-5">Không tìm thấy đơn hàng phù hợp.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        @if (Model.Data.PageCount > 1)
+        {
+            <div class="card-footer pagination-panel py-3">
+                <ul class="pagination justify-content-center mb-0">
+                    <li class="page-item @(Model.Data.HasPreviousPage ? "" : "disabled")">
                         <a class="page-link"
                            href="javascript:;"
-                           onclick="paginationSearch(event, document.getElementById('formSearch'), @p)">
-                            @p
+                           onclick="if(@Model.Data.HasPreviousPage.ToString().ToLower()) paginationSearch(event, document.getElementById('formSearch'), @(Model.Data.Page - 1))">
+                            <i class="bi bi-chevron-left"></i>
                         </a>
                     </li>
-                }
-            </ul>
-        </div>
-    }
+
+                    @foreach (var pageItem in displayPages)
+                    {
+                        if (pageItem.IsEllipsis)
+                        {
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        }
+                        else if (pageItem.IsCurrent)
+                        {
+                            <li class="page-item active">
+                                <span class="page-link">@pageItem.Page</span>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="page-item">
+                                <a class="page-link"
+                                   href="javascript:;"
+                                   onclick="paginationSearch(event, document.getElementById('formSearch'), @pageItem.Page)">
+                                    @pageItem.Page
+                                </a>
+                            </li>
+                        }
+                    }
+
+                    <li class="page-item @(Model.Data.HasNextPage ? "" : "disabled")">
+                        <a class="page-link"
+                           href="javascript:;"
+                           onclick="if(@Model.Data.HasNextPage.ToString().ToLower()) paginationSearch(event, document.getElementById('formSearch'), @(Model.Data.Page + 1))">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        }
+    </div>
 </div>

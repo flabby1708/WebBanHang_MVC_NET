@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SV22T1020497.Admin.AppCodes;
 using SV22T1020497.Admin.Models;
 using SV22T1020497.BusinessLayers;
 using SV22T1020497.DataLayers.SQLServer;
@@ -8,6 +10,7 @@ using SV22T1020497.Models.Sales;
 
 namespace SV22T1020497.Admin.Controllers
 {
+    [Authorize(Roles = $"{WebUserRoles.Customers},{WebUserRoles.SystemAdmin}")]
     public class CustomerController : Controller
     {
         public async Task<IActionResult> Index(string searchValue = "", int page = 1, int pageSize = 10)

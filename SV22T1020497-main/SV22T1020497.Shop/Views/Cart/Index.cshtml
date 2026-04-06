@@ -3,25 +3,29 @@
     ViewData["Title"] = "Giỏ hàng";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="h3 mb-0">Giỏ hàng</h1>
-    <a asp-controller="Product" asp-action="Index" class="btn btn-outline-secondary">Tiếp tục mua sắm</a>
+<div class="shop-cart-head">
+    <div>
+        <span class="shop-section__eyebrow">Giỏ mua sắm</span>
+        <h1 class="shop-section__title mb-1">Sẵn sàng hoàn tất đơn hàng</h1>
+        <div class="shop-section__subtitle">Kiểm tra nhanh sản phẩm, số lượng và tổng tiền trước khi đặt mua.</div>
+    </div>
+    <a asp-controller="Product" asp-action="Index" class="btn btn-outline-primary shop-btn-soft">Tiếp tục mua sắm</a>
 </div>
 
 @if (!Model.Items.Any())
 {
-    <div class="alert alert-info">Giỏ hàng của bạn đang trống.</div>
+    <div class="alert alert-info shop-alert">Giỏ hàng của bạn đang trống.</div>
 }
 else
 {
-    <div class="card border-0 shadow-sm">
+    <section class="shop-cart-shell">
         <div class="table-responsive">
-            <table class="table align-middle mb-0">
+            <table class="table align-middle mb-0 shop-cart-table">
                 <thead>
                     <tr>
                         <th>Sản phẩm</th>
                         <th style="width: 140px;">Đơn giá</th>
-                        <th style="width: 180px;">Số lượng</th>
+                        <th style="width: 220px;">Số lượng</th>
                         <th style="width: 140px;">Thành tiền</th>
                         <th style="width: 120px;"></th>
                     </tr>
@@ -40,7 +44,7 @@ else
                                     @Html.AntiForgeryToken()
                                     <input type="hidden" name="productId" value="@item.ProductID" />
                                     <input type="number" name="quantity" value="@item.Quantity" min="0" class="form-control" />
-                                    <button type="submit" class="btn btn-outline-primary btn-sm">Cập nhật</button>
+                                    <button type="submit" class="btn btn-outline-primary shop-btn-soft">Cập nhật</button>
                                 </form>
                             </td>
                             <td class="fw-semibold">@item.TotalPrice.ToString("N0") đ</td>
@@ -48,7 +52,7 @@ else
                                 <form method="post" asp-action="Remove">
                                     @Html.AntiForgeryToken()
                                     <input type="hidden" name="productId" value="@item.ProductID" />
-                                    <button type="submit" class="btn btn-outline-danger btn-sm">Xóa</button>
+                                    <button type="submit" class="btn btn-outline-danger">Xóa</button>
                                 </form>
                             </td>
                         </tr>
@@ -56,9 +60,9 @@ else
                 </tbody>
             </table>
         </div>
-        <div class="card-footer d-flex justify-content-between align-items-center">
-            <div class="fs-5 fw-semibold">Tổng cộng: @Model.TotalAmount.ToString("N0") đ</div>
-            <a asp-action="Checkout" class="btn btn-primary">Tiến hành đặt hàng</a>
+        <div class="shop-cart-summary d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div class="fs-5 fw-semibold">Tổng cộng: <span class="shop-price">@Model.TotalAmount.ToString("N0") đ</span></div>
+            <a asp-action="Checkout" class="btn btn-primary shop-btn-primary">Tiến hành đặt hàng</a>
         </div>
-    </div>
+    </section>
 }
