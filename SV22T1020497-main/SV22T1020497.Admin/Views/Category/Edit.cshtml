@@ -1,6 +1,10 @@
-﻿@model SV22T1020497.Models.Catalog.Category
+@model SV22T1020497.Models.Catalog.Category
 @{
     ViewBag.Title = "Cập nhật loại hàng";
+    string? photoUrl = CategoryImageHelper.ResolveCategoryImageUrl(Model.CategoryName, Model.Photo);
+    string previewUrl = string.IsNullOrWhiteSpace(photoUrl)
+        ? Url.Content("~/images/products/nophoto.png")
+        : photoUrl;
 }
 @section PageToolBar {
     <button type="submit" form="formEdit" class="btn btn-primary">
@@ -15,27 +19,77 @@
 }
 
 <div class="row justify-content-center">
-    <div class="col-12">
+    <div class="col-12 col-xl-10">
         <div class="card card-primary card-outline">
             <div class="card-header">
-                <h5 class="card-title mb-0">Thông tin loại hàng</h5>
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-tag me-2"></i>
+                    Thông tin loại hàng
+                </h5>
             </div>
 
             <div class="card-body">
-                <form id="formEdit" method="post" asp-controller="Category" asp-action="Edit">
+                <form id="formEdit" method="post" asp-controller="Category" asp-action="Edit" enctype="multipart/form-data">
                     @Html.AntiForgeryToken()
                     <input type="hidden" asp-for="CategoryID" />
-                    <div class="mb-3">
-                        <label class="form-label">Tên loại hàng</label>
-                        <input asp-for="CategoryName" class="form-control" placeholder="Nhập tên loại hàng" autofocus />
-                    </div>
+                    <input type="hidden" asp-for="Photo" />
 
-                    <div class="mb-3">
-                        <label class="form-label">Mô tả</label>
-                        <textarea asp-for="Description" class="form-control" rows="3" placeholder="Nhập mô tả loại hàng"></textarea>
+                    <div class="row g-4">
+                        <div class="col-lg-7">
+                            <div class="mb-3">
+                                <label asp-for="CategoryName" class="form-label">Tên loại hàng</label>
+                                <input asp-for="CategoryName" class="form-control" placeholder="Nhập tên loại hàng" autofocus />
+                                <span asp-validation-for="CategoryName" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-0">
+                                <label asp-for="Description" class="form-label">Mô tả</label>
+                                <textarea asp-for="Description" class="form-control" rows="4" placeholder="Nhập mô tả loại hàng"></textarea>
+                                <span asp-validation-for="Description" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-5">
+                            <div class="border rounded-4 p-3 bg-light h-100">
+                                <label class="form-label" for="uploadPhoto">Đổi ảnh loại hàng</label>
+                                <input id="uploadPhoto" type="file" name="uploadPhoto" class="form-control mb-3" accept="image/*" />
+                                <div class="text-center">
+                                    <img id="categoryPhotoPreview"
+                                         src="@previewUrl"
+                                         alt="@Model.CategoryName"
+                                         class="img-thumbnail"
+                                         style="width:220px;height:220px;object-fit:contain;" />
+                                </div>
+                                <div class="small text-muted mt-3">
+                                    Nếu không chọn ảnh mới, hệ thống sẽ giữ lại tên file đang lưu trong cột <strong>Photo</strong>.
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        (() => {
+            const input = document.getElementById('uploadPhoto');
+            const preview = document.getElementById('categoryPhotoPreview');
+            const fallback = '@previewUrl';
+
+            if (!input || !preview) return;
+
+            input.addEventListener('change', function () {
+                const file = this.files && this.files[0];
+                if (!file) {
+                    preview.src = fallback;
+                    return;
+                }
+
+                preview.src = URL.createObjectURL(file);
+            });
+        })();
+    </script>
+}

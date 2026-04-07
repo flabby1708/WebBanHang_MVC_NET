@@ -89,7 +89,8 @@ CREATE TABLE [dbo].[Categories]
 (
 	[CategoryID] [int] IDENTITY(1,1) NOT NULL PRIMARY KEY,
 	[CategoryName] [nvarchar](255) NOT NULL,
-	[Description] [nvarchar](255) NULL
+    [Description] [nvarchar](255) NULL,
+    [Photo] [nvarchar](255) NULL
 )
 GO
 

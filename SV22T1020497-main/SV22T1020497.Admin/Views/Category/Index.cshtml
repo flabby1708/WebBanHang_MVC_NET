@@ -39,6 +39,7 @@
             <thead class="table-secondary">
                 <tr>
                     <th style="width:100px">Mã loại</th>
+                    <th style="width:120px">Ảnh</th>
                     <th>Tên loại hàng</th>
                     <th>Mô tả</th>
                     <th class="text-center" style="width:100px">Thao tác</th>
@@ -49,8 +50,19 @@
                 {
                     foreach (var item in Model)
                     {
+                        string? resolvedPhoto = CategoryImageHelper.ResolveCategoryImageUrl(item.CategoryName, item.Photo);
+                        string photoUrl = string.IsNullOrWhiteSpace(resolvedPhoto)
+                            ? Url.Content("~/images/products/nophoto.png")
+                            : resolvedPhoto;
+
                         <tr>
                             <td>@item.CategoryID</td>
+                            <td>
+                                <img src="@photoUrl"
+                                     alt="@item.CategoryName"
+                                     class="img-thumbnail"
+                                     style="width:80px;height:80px;object-fit:contain" />
+                            </td>
                             <td>@item.CategoryName</td>
                             <td>@item.Description</td>
                             <td class="text-center text-nowrap">

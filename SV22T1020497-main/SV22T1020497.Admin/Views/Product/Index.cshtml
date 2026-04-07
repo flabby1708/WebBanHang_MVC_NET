@@ -53,9 +53,18 @@
                 {
                     foreach (var item in Model)
                     {
+                        string? photoUrl = ProductImageHelper.ResolveProductImageUrl(item.ProductName, item.Photo);
+
                         <tr>
                             <td class="text-center align-middle">
-                                <img src="~/images/products/demo.png" alt="Ảnh mặt hàng" class="img-thumbnail" style="max-height:64px;" />
+                                @if (!string.IsNullOrWhiteSpace(photoUrl))
+                                {
+                                    <img src="@photoUrl" alt="@item.ProductName" class="img-thumbnail" style="width:64px;height:64px;object-fit:contain;" />
+                                }
+                                else
+                                {
+                                    <img src="~/images/products/nophoto.png" alt="@item.ProductName" class="img-thumbnail" style="width:64px;height:64px;object-fit:contain;" />
+                                }
                             </td>
                             <td>
                                 <strong>@item.ProductName</strong><br />

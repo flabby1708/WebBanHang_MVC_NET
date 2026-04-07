@@ -1,6 +1,7 @@
 @model SV22T1020497.Models.Catalog.Category
 @{
     ViewBag.Title = "Xóa loại hàng";
+    string? photoUrl = CategoryImageHelper.ResolveCategoryImageUrl(Model.CategoryName, Model.Photo);
 }
 @section PageToolBar {
     <button type="submit" form="formDelete" class="btn btn-danger">
@@ -24,15 +25,23 @@
                 <p>Bạn có chắc chắn muốn xóa loại hàng sau không?</p>
                 <dl class="row mb-0">
                     <dt class="col-sm-3">Tên loại hàng</dt>
-                    <dd class="col-sm-9">@Model?.CategoryName</dd>
+                    <dd class="col-sm-9">@Model.CategoryName</dd>
 
                     <dt class="col-sm-3">Mô tả</dt>
-                    <dd class="col-sm-9">@Model?.Description</dd>
+                    <dd class="col-sm-9">@Model.Description</dd>
+
+                    <dt class="col-sm-3">Ảnh</dt>
+                    <dd class="col-sm-9">
+                        <img src="@(string.IsNullOrWhiteSpace(photoUrl) ? Url.Content("~/images/products/nophoto.png") : photoUrl)"
+                             alt="@Model.CategoryName"
+                             class="img-thumbnail"
+                             style="max-height:180px;object-fit:contain;" />
+                    </dd>
                 </dl>
 
                 <form id="formDelete" method="post" asp-controller="Category" asp-action="Delete" class="d-none">
                     @Html.AntiForgeryToken()
-                    <input type="hidden" name="id" value="@Model?.CategoryID" />
+                    <input type="hidden" name="id" value="@Model.CategoryID" />
                 </form>
             </div>
         </div>

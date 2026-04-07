@@ -32,14 +32,21 @@ namespace SV22T1020497.DataLayers.SQLServer
             input ??= new PaginationSearchInput();
             const string whereClause = "WHERE (@SearchValue = N'' OR CategoryName LIKE @Keyword OR Description LIKE @Keyword)";
 
+            await using var connection = new SqlConnection(_connectionString);
+            bool hasPhotoColumn = await HasPhotoColumnAsync(connection);
+
+            string photoSelect = hasPhotoColumn
+                ? "ISNULL(Photo, N'') AS Photo"
+                : "N'' AS Photo";
+
             string countSql = $@"SELECT COUNT(*) FROM Categories {whereClause};";
             string dataSql = input.PageSize > 0
-                ? $@"SELECT CategoryID, CategoryName, Description
+                ? $@"SELECT CategoryID, CategoryName, Description, {photoSelect}
                      FROM Categories
                      {whereClause}
                      ORDER BY CategoryName
                      OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;"
-                : $@"SELECT CategoryID, CategoryName, Description
+                : $@"SELECT CategoryID, CategoryName, Description, {photoSelect}
                      FROM Categories
                      {whereClause}
                      ORDER BY CategoryName;";
@@ -52,7 +59,6 @@ namespace SV22T1020497.DataLayers.SQLServer
                 input.PageSize
             };
 
-            await using var connection = new SqlConnection(_connectionString);
             int rowCount = await connection.ExecuteScalarAsync<int>(countSql, parameters);
             var items = await connection.QueryAsync<Category>(dataSql, parameters);
 
@@ -72,10 +78,17 @@ namespace SV22T1020497.DataLayers.SQLServer
         /// <returns>Thông tin loại hàng hoặc null nếu không có dữ liệu.</returns>
         public async Task<Category?> GetAsync(int id)
         {
-            const string sql = @"SELECT CategoryID, CategoryName, Description
-                                 FROM Categories
-                                 WHERE CategoryID = @CategoryID;";
             await using var connection = new SqlConnection(_connectionString);
+            bool hasPhotoColumn = await HasPhotoColumnAsync(connection);
+
+            string photoSelect = hasPhotoColumn
+                ? "ISNULL(Photo, N'') AS Photo"
+                : "N'' AS Photo";
+
+            string sql = $@"SELECT CategoryID, CategoryName, Description, {photoSelect}
+                            FROM Categories
+                            WHERE CategoryID = @CategoryID;";
+
             return await connection.QueryFirstOrDefaultAsync<Category>(sql, new { CategoryID = id });
         }
 
@@ -86,10 +99,17 @@ namespace SV22T1020497.DataLayers.SQLServer
         /// <returns>Mã loại hàng vừa được tạo.</returns>
         public async Task<int> AddAsync(Category data)
         {
-            const string sql = @"INSERT INTO Categories(CategoryName, Description)
-                                 VALUES (@CategoryName, @Description);
-                                 SELECT CAST(SCOPE_IDENTITY() AS int);";
             await using var connection = new SqlConnection(_connectionString);
+            bool hasPhotoColumn = await HasPhotoColumnAsync(connection);
+
+            string sql = hasPhotoColumn
+                ? @"INSERT INTO Categories(CategoryName, Description, Photo)
+                    VALUES (@CategoryName, @Description, @Photo);
+                    SELECT CAST(SCOPE_IDENTITY() AS int);"
+                : @"INSERT INTO Categories(CategoryName, Description)
+                    VALUES (@CategoryName, @Description);
+                    SELECT CAST(SCOPE_IDENTITY() AS int);";
+
             return await connection.ExecuteScalarAsync<int>(sql, data);
         }
 
@@ -100,12 +120,31 @@ namespace SV22T1020497.DataLayers.SQLServer
         /// <returns>True nếu cập nhật thành công, ngược lại là false.</returns>
         public async Task<bool> UpdateAsync(Category data)
         {
-            const string sql = @"UPDATE Categories
-                                 SET CategoryName = @CategoryName,
-                                     Description = @Description
-                                 WHERE CategoryID = @CategoryID;";
             await using var connection = new SqlConnection(_connectionString);
+            bool hasPhotoColumn = await HasPhotoColumnAsync(connection);
+
+            string sql = hasPhotoColumn
+                ? @"UPDATE Categories
+                    SET CategoryName = @CategoryName,
+                        Description = @Description,
+                        Photo = @Photo
+                    WHERE CategoryID = @CategoryID;"
+                : @"UPDATE Categories
+                    SET CategoryName = @CategoryName,
+                        Description = @Description
+                    WHERE CategoryID = @CategoryID;";
+
             return await connection.ExecuteAsync(sql, data) > 0;
+        }
+
+        private static async Task<bool> HasPhotoColumnAsync(SqlConnection connection)
+        {
+            const string sql = @"SELECT COUNT(*)
+                                 FROM INFORMATION_SCHEMA.COLUMNS
+                                 WHERE TABLE_NAME = 'Categories' AND COLUMN_NAME = 'Photo';";
+
+            int count = await connection.ExecuteScalarAsync<int>(sql);
+            return count > 0;
         }
 
         /// <summary>
