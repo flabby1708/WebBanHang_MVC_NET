@@ -25,7 +25,7 @@ namespace SV22T1020497.Admin.Controllers
             if (hasAdmin && !roles.Contains(WebUserRoles.SystemAdmin, StringComparer.OrdinalIgnoreCase))
                 roles.Add(WebUserRoles.SystemAdmin);
 
-            // Tai khoan role cu "employee" duoc phep nhin cac nhom chuc nang co ban de tuong thich voi du lieu seed cu.
+            // Tài khoản role cũ "employee" được phép nhìn các nhóm chức năng cơ bản để tương thích với dữ liệu seed cũ.
             if (hasEmployee || hasAdmin)
             {
                 if (!roles.Contains(WebUserRoles.Customers, StringComparer.OrdinalIgnoreCase))

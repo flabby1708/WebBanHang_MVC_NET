@@ -1,0 +1,37 @@
+@model SV22T1020497.Models.Catalog.ProductPhoto
+@{
+    ViewBag.Title = "Xóa ảnh";
+    var product = ViewBag.Product as SV22T1020497.Models.Catalog.Product;
+    string previewUrl = ProductImageHelper.ResolveProductImageUrl(product?.ProductName, Model.Photo) ?? Url.Content("~/images/products/nophoto.png");
+}
+@section PageToolBar {
+    <button type="submit" form="formDeletePhoto" class="btn btn-danger">
+        <i class="bi bi-trash"></i>
+        Xóa ảnh
+    </button>
+
+    <a href="~/Product/Edit/@(product?.ProductID ?? Model.ProductID)#photos" class="btn btn-secondary ms-1">
+        <i class="bi bi-arrow-left"></i>
+        Quay lại
+    </a>
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card card-danger card-outline">
+            <div class="card-header">
+                <h5 class="mb-0">Xác nhận xóa ảnh</h5>
+            </div>
+            <div class="card-body">
+                <form id="formDeletePhoto" method="post" asp-action="DeletePhoto" asp-route-id="@(product?.ProductID ?? Model.ProductID)" asp-route-photoId="@Model.PhotoID">
+                    @Html.AntiForgeryToken()
+                    <p>Bạn có chắc chắn muốn xóa ảnh này không?</p>
+                    <div class="mb-3">
+                        <img src="@previewUrl" alt="Ảnh sản phẩm" class="img-thumbnail" style="max-height:160px;" />
+                    </div>
+                    <div><strong>Mô tả:</strong> @Model.Description</div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

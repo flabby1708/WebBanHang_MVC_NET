@@ -13,6 +13,27 @@
     };
 }
 @section PageToolBar {
+    @if (Model.Order.Status == OrderStatusEnum.New)
+    {
+        <a href="~/Order/Accept/@Model.Order.OrderID" class="btn btn-info open-modal"><i class="bi bi-check2-circle"></i> Duyệt</a>
+        <a href="~/Order/Reject/@Model.Order.OrderID" class="btn btn-danger open-modal ms-1"><i class="bi bi-x-circle"></i> Từ chối</a>
+        <a href="~/Order/Cancel/@Model.Order.OrderID" class="btn btn-warning open-modal ms-1"><i class="bi bi-slash-circle"></i> Hủy</a>
+        <a href="~/Order/Delete/@Model.Order.OrderID" class="btn btn-outline-danger open-modal ms-1"><i class="bi bi-trash"></i> Xóa</a>
+    }
+    else if (Model.Order.Status == OrderStatusEnum.Accepted)
+    {
+        <a href="~/Order/Shipping/@Model.Order.OrderID" class="btn btn-primary open-modal"><i class="bi bi-truck"></i> Giao hàng</a>
+        <a href="~/Order/Cancel/@Model.Order.OrderID" class="btn btn-warning open-modal ms-1"><i class="bi bi-slash-circle"></i> Hủy</a>
+    }
+    else if (Model.Order.Status == OrderStatusEnum.Shipping)
+    {
+        <a href="~/Order/Finish/@Model.Order.OrderID" class="btn btn-success open-modal"><i class="bi bi-check2-square"></i> Hoàn tất</a>
+    }
+    else if (Model.Order.Status == OrderStatusEnum.Rejected || Model.Order.Status == OrderStatusEnum.Cancelled)
+    {
+        <a href="~/Order/Delete/@Model.Order.OrderID" class="btn btn-outline-danger open-modal"><i class="bi bi-trash"></i> Xóa</a>
+    }
+
     <a href="~/Order" class="btn btn-secondary ms-1"><i class="bi bi-arrow-left"></i> Quay lại</a>
 }
 <div class="alert @badgeClass d-flex align-items-center mb-3">

@@ -5,6 +5,7 @@ using SV22T1020497.Admin.Models;
 using SV22T1020497.BusinessLayers;
 using SV22T1020497.Models.Catalog;
 using SV22T1020497.Models.Common;
+using SV22T1020497.Models.Partner;
 using SV22T1020497.Models.Sales;
 
 namespace SV22T1020497.Admin.Controllers
@@ -259,34 +260,168 @@ namespace SV22T1020497.Admin.Controllers
             return RedirectToAction(nameof(Create), new { searchValue, page });
         }
 
-        public IActionResult Accept(int id)
+        public async Task<IActionResult> Accept(int id)
         {
-            return View();
+            var order = await SalesDataService.GetOrderAsync(id);
+            if (order == null)
+                return Content("<div class='modal-body text-danger'>Không tìm thấy đơn hàng.</div>", "text/html");
+
+            return View(order);
         }
 
-        public IActionResult Shipping(int id)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Accept(int id, string returnAction = nameof(Detail))
         {
-            return View();
+            int employeeId = GetCurrentEmployeeId();
+            if (employeeId <= 0)
+            {
+                TempData["ErrorMessage"] = "Không xác định được nhân viên đang đăng nhập.";
+                return RedirectToSafeAction(returnAction, id);
+            }
+
+            bool success = await SalesDataService.AcceptOrderAsync(id, employeeId);
+            TempData[success ? "SuccessMessage" : "ErrorMessage"] = success
+                ? "Đã duyệt chấp nhận đơn hàng."
+                : "Không thể duyệt đơn hàng ở trạng thái hiện tại.";
+
+            return RedirectToSafeAction(returnAction, id);
         }
 
-        public IActionResult Finish(int id)
+        public async Task<IActionResult> Shipping(int id)
         {
-            return View();
+            var order = await SalesDataService.GetOrderAsync(id);
+            if (order == null)
+                return Content("<div class='modal-body text-danger'>Không tìm thấy đơn hàng.</div>", "text/html");
+
+            ViewBag.Shippers = await GetShippersAsync();
+            return View(order);
         }
 
-        public IActionResult Reject(int id)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Shipping(int id, int shipperId, string returnAction = nameof(Detail))
         {
-            return View();
+            if (shipperId <= 0)
+            {
+                TempData["ErrorMessage"] = "Vui lòng chọn người giao hàng.";
+                return RedirectToSafeAction(returnAction, id);
+            }
+
+            bool success = await SalesDataService.ShipOrderAsync(id, shipperId);
+            TempData[success ? "SuccessMessage" : "ErrorMessage"] = success
+                ? "Đã chuyển đơn hàng sang trạng thái đang giao."
+                : "Không thể giao đơn hàng ở trạng thái hiện tại.";
+
+            return RedirectToSafeAction(returnAction, id);
         }
 
-        public IActionResult Cancel(int id)
+        public async Task<IActionResult> Finish(int id)
         {
-            return View();
+            var order = await SalesDataService.GetOrderAsync(id);
+            if (order == null)
+                return Content("<div class='modal-body text-danger'>Không tìm thấy đơn hàng.</div>", "text/html");
+
+            return View(order);
         }
 
-        public IActionResult Delete(int id)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Finish(int id, string returnAction = nameof(Detail))
         {
-            return View();
+            bool success = await SalesDataService.CompleteOrderAsync(id);
+            TempData[success ? "SuccessMessage" : "ErrorMessage"] = success
+                ? "Đã xác nhận hoàn tất đơn hàng."
+                : "Không thể hoàn tất đơn hàng ở trạng thái hiện tại.";
+
+            return RedirectToSafeAction(returnAction, id);
+        }
+
+        public async Task<IActionResult> Reject(int id)
+        {
+            var order = await SalesDataService.GetOrderAsync(id);
+            if (order == null)
+                return Content("<div class='modal-body text-danger'>Không tìm thấy đơn hàng.</div>", "text/html");
+
+            return View(order);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Reject(int id, string returnAction = nameof(Detail))
+        {
+            int employeeId = GetCurrentEmployeeId();
+            if (employeeId <= 0)
+            {
+                TempData["ErrorMessage"] = "Không xác định được nhân viên đang đăng nhập.";
+                return RedirectToSafeAction(returnAction, id);
+            }
+
+            bool success = await SalesDataService.RejectOrderAsync(id, employeeId);
+            TempData[success ? "SuccessMessage" : "ErrorMessage"] = success
+                ? "Đã từ chối đơn hàng."
+                : "Không thể từ chối đơn hàng ở trạng thái hiện tại.";
+
+            return RedirectToSafeAction(returnAction, id);
+        }
+
+        public async Task<IActionResult> Cancel(int id)
+        {
+            var order = await SalesDataService.GetOrderAsync(id);
+            if (order == null)
+                return Content("<div class='modal-body text-danger'>Không tìm thấy đơn hàng.</div>", "text/html");
+
+            return View(order);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Cancel(int id, string returnAction = nameof(Detail))
+        {
+            bool success = await SalesDataService.CancelOrderAsync(id);
+            TempData[success ? "SuccessMessage" : "ErrorMessage"] = success
+                ? "Đã hủy đơn hàng."
+                : "Không thể hủy đơn hàng ở trạng thái hiện tại.";
+
+            return RedirectToSafeAction(returnAction, id);
+        }
+
+        public async Task<IActionResult> Delete(int id)
+        {
+            var order = await SalesDataService.GetOrderAsync(id);
+            if (order == null)
+                return Content("<div class='modal-body text-danger'>Không tìm thấy đơn hàng.</div>", "text/html");
+
+            return View(order);
+        }
+
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id, string returnAction = nameof(Index))
+        {
+            var order = await SalesDataService.GetOrderAsync(id);
+            if (order == null)
+            {
+                TempData["ErrorMessage"] = "Đơn hàng không tồn tại.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            if (order.Status == OrderStatusEnum.Accepted ||
+                order.Status == OrderStatusEnum.Shipping ||
+                order.Status == OrderStatusEnum.Completed)
+            {
+                TempData["ErrorMessage"] = "Không thể xóa đơn hàng đã được xử lý.";
+                return RedirectToSafeAction(returnAction, id);
+            }
+
+            bool success = await SalesDataService.DeleteOrderAsync(id);
+            TempData[success ? "SuccessMessage" : "ErrorMessage"] = success
+                ? "Đã xóa đơn hàng."
+                : "Không thể xóa đơn hàng.";
+
+            return success || string.Equals(returnAction, nameof(Index), StringComparison.OrdinalIgnoreCase)
+                ? RedirectToAction(nameof(Index))
+                : RedirectToSafeAction(returnAction, id);
         }
 
         private static DateTime? ParseDate(string? value)
@@ -354,6 +489,35 @@ namespace SV22T1020497.Admin.Controllers
                 DeliveryProvince = deliveryProvince,
                 DeliveryAddress = deliveryAddress
             });
+        }
+
+        private int GetCurrentEmployeeId()
+        {
+            var userData = User.GetUserData();
+            return int.TryParse(userData?.UserId, out int employeeId) ? employeeId : 0;
+        }
+
+        private IActionResult RedirectToSafeAction(string? returnAction, int id)
+        {
+            if (string.Equals(returnAction, nameof(Index), StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(returnAction, nameof(Search), StringComparison.OrdinalIgnoreCase))
+            {
+                return RedirectToAction(nameof(Index));
+            }
+
+            return RedirectToAction(nameof(Detail), new { id });
+        }
+
+        private static async Task<List<Shipper>> GetShippersAsync()
+        {
+            var result = await PartnerDataService.ListShippersAsync(new PaginationSearchInput
+            {
+                SearchValue = string.Empty,
+                Page = 1,
+                PageSize = 0
+            });
+
+            return result.DataItems;
         }
     }
 }

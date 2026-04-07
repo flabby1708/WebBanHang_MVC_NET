@@ -1,5 +1,8 @@
-﻿@{
+@model SV22T1020497.Models.Catalog.ProductPhoto
+@{
     ViewBag.Title = "Cập nhật ảnh";
+    var product = ViewBag.Product as SV22T1020497.Models.Catalog.Product;
+    string previewUrl = ProductImageHelper.ResolveProductImageUrl(product?.ProductName, Model.Photo) ?? Url.Content("~/images/products/nophoto.png");
 }
 @section PageToolBar {
     <button type="submit" form="formEditPhoto" class="btn btn-primary">
@@ -7,7 +10,7 @@
         Lưu ảnh
     </button>
 
-    <a href="~/Product/Edit/1#photos" class="btn btn-secondary ms-1">
+    <a href="~/Product/Edit/@(product?.ProductID ?? Model.ProductID)#photos" class="btn btn-secondary ms-1">
         <i class="bi bi-arrow-left"></i>
         Quay lại
     </a>
@@ -20,34 +23,38 @@
                 <h5 class="mb-0">Thông tin ảnh mặt hàng</h5>
             </div>
             <div class="card-body">
-                <form id="formEditPhoto" method="post" asp-controller="Product" asp-action="EditPhoto">
+                <form id="formEditPhoto" method="post" enctype="multipart/form-data" asp-controller="Product" asp-action="EditPhoto" asp-route-id="@(product?.ProductID ?? Model.ProductID)">
                     @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="PhotoID" />
+                    <input type="hidden" asp-for="ProductID" />
+                    <input type="hidden" asp-for="Photo" />
 
                     <div class="row mb-3">
                         <label class="col-sm-3 fw-semibold">Ảnh</label>
                         <div class="col-sm-9">
-                            <input type="file" name="uploadPhoto" class="form-control" />
+                            <input type="file" name="uploadPhoto" class="form-control" data-img-preview="photoPreview" onchange="previewImage(this)" />
+                            <div class="form-text">Nếu không chọn file mới, hệ thống sẽ giữ ảnh hiện tại.</div>
                         </div>
                     </div>
 
                     <div class="row mb-3">
                         <label class="col-sm-3 fw-semibold">Xem trước</label>
                         <div class="col-sm-9">
-                            <img src="~/images/products/demo.png" alt="Ảnh sản phẩm" class="img-thumbnail" style="max-height:140px;" />
+                            <img id="photoPreview" src="@previewUrl" alt="Ảnh sản phẩm" class="img-thumbnail" style="max-height:140px;" />
                         </div>
                     </div>
 
                     <div class="row mb-3">
                         <label class="col-sm-3 fw-semibold">Mô tả</label>
                         <div class="col-sm-9">
-                            <input type="text" name="Description" class="form-control" placeholder="Nhập mô tả ảnh" />
+                            <input asp-for="Description" class="form-control" placeholder="Nhập mô tả ảnh" />
                         </div>
                     </div>
 
                     <div class="row mb-3">
                         <label class="col-sm-3 fw-semibold">Thứ tự hiển thị</label>
                         <div class="col-sm-9">
-                            <input type="number" name="DisplayOrder" class="form-control" value="1" min="1" />
+                            <input asp-for="DisplayOrder" type="number" class="form-control" min="1" />
                         </div>
                     </div>
 
@@ -55,7 +62,7 @@
                         <label class="col-sm-3 fw-semibold">Trạng thái</label>
                         <div class="col-sm-9 pt-2">
                             <div class="form-check">
-                                <input type="checkbox" name="IsHidden" class="form-check-input" id="chkHidden" />
+                                <input asp-for="IsHidden" class="form-check-input" id="chkHidden" />
                                 <label for="chkHidden" class="form-check-label">Ẩn ảnh</label>
                             </div>
                         </div>

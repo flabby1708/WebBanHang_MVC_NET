@@ -1,24 +1,28 @@
-﻿@{
-    Layout = null;
+@model IEnumerable<SV22T1020497.Models.Catalog.ProductAttribute>
+@{
+    ViewBag.Title = "Thuộc tính mặt hàng";
+    var product = ViewBag.Product as SV22T1020497.Models.Catalog.Product;
 }
+@section PageToolBar {
+    <a class="btn btn-primary" href="~/Product/CreateAttribute/@(product?.ProductID ?? 0)">
+        <i class="bi bi-plus"></i>
+        Thêm thuộc tính
+    </a>
+
+    <a class="btn btn-secondary ms-1" href="~/Product/Edit/@(product?.ProductID ?? 0)">
+        <i class="bi bi-arrow-left"></i>
+        Quay lại mặt hàng
+    </a>
+}
+
 <div class="row justify-content-center">
     <div class="col-12">
-        <div class="card card-success card-outline mt-4">
+        <div class="card card-success card-outline">
             <div class="card-header">
-                <div class="row">
-                    <div class="col">
-                        <h6 id="attributes" class="card-title mb-0">
-                            <i class="bi bi-list-check me-2"></i>
-                            Thuộc tính mặt hàng
-                        </h6>
-                    </div>
-                    <div class="col text-end">
-                        <a class="btn btn-sm btn-primary" href="~/Product/CreateAttribute/123">
-                            <i class="bi bi-plus"></i>
-                            Thêm thuộc tính
-                        </a>
-                    </div>
-                </div>
+                <h6 id="attributes" class="card-title mb-0">
+                    <i class="bi bi-list-check me-2"></i>
+                    Thuộc tính của @(product?.ProductName ?? "mặt hàng")
+                </h6>
             </div>
 
             <div class="card-body p-1">
@@ -32,20 +36,29 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @for (int i = 1; i <= 10; i++)
+                        @if (Model.Any())
+                        {
+                            foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>@item.AttributeName</td>
+                                    <td>@item.AttributeValue</td>
+                                    <td class="text-center">@item.DisplayOrder</td>
+                                    <td class="text-center text-nowrap">
+                                        <a class="btn btn-sm btn-primary" href="~/Product/EditAttribute/@item.ProductID?attributeId=@item.AttributeID">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <a class="btn btn-sm btn-danger" href="~/Product/DeleteAttribute/@item.ProductID?attributeId=@item.AttributeID">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
                         {
                             <tr>
-                                <td>Màu sắc</td>
-                                <td>Đỏ</td>
-                                <td class="text-center">@i</td>
-                                <td class="text-center text-nowrap">
-                                    <a class="btn btn-sm btn-primary" href="~/Product/EditAttribute/123?attributeId=456">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                    <a class="btn btn-sm btn-danger" href="~/Product/DeleteAttribute/123?attributeId=456">
-                                        <i class="bi bi-trash"></i>
-                                    </a>
-                                </td>
+                                <td colspan="4" class="text-center text-muted py-4">Chưa có thuộc tính nào cho mặt hàng này.</td>
                             </tr>
                         }
                     </tbody>
