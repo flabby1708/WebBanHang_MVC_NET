@@ -65,6 +65,22 @@ namespace SV22T1020497.Shop.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Clear()
+        {
+            var cart = CartService.GetCart();
+            if (!cart.Any())
+            {
+                TempData["ErrorMessage"] = "Giỏ hàng của bạn đang trống.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            CartService.Clear();
+            TempData["SuccessMessage"] = "Đã xóa toàn bộ giỏ hàng.";
+            return RedirectToAction(nameof(Index));
+        }
+
         [Authorize]
         [HttpGet]
         public async Task<IActionResult> Checkout()

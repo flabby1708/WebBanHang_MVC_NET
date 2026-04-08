@@ -3,11 +3,16 @@
 @{
     Layout = null;
     var shippers = ViewBag.Shippers as List<Shipper> ?? new List<Shipper>();
+    var returnAction = Context.Request.Query["returnAction"].ToString();
+    if (string.IsNullOrWhiteSpace(returnAction))
+    {
+        returnAction = "Detail";
+    }
 }
 <form method="post" asp-action="Shipping">
     @Html.AntiForgeryToken()
     <input type="hidden" name="id" value="@Model.OrderID" />
-    <input type="hidden" name="returnAction" value="Detail" />
+    <input type="hidden" name="returnAction" value="@returnAction" />
     <div class="modal-header text-bg-info">
         <strong class="modal-title">Chọn người giao hàng</strong>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>

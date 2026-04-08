@@ -9,7 +9,13 @@
         <h1 class="shop-section__title mb-1">Sẵn sàng hoàn tất đơn hàng</h1>
         <div class="shop-section__subtitle">Kiểm tra nhanh sản phẩm, số lượng và tổng tiền trước khi đặt mua.</div>
     </div>
-    <a asp-controller="Product" asp-action="Index" class="btn btn-outline-primary shop-btn-soft">Tiếp tục mua sắm</a>
+    <div class="d-flex flex-wrap gap-2">
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <a asp-controller="Order" asp-action="Index" class="btn btn-outline-secondary shop-btn-soft">Lịch sử mua hàng</a>
+        }
+        <a asp-controller="Product" asp-action="Index" class="btn btn-outline-primary shop-btn-soft">Tiếp tục mua sắm</a>
+    </div>
 </div>
 
 @if (!Model.Items.Any())
@@ -62,7 +68,13 @@ else
         </div>
         <div class="shop-cart-summary d-flex justify-content-between align-items-center flex-wrap gap-3">
             <div class="fs-5 fw-semibold">Tổng cộng: <span class="shop-price">@Model.TotalAmount.ToString("N0") đ</span></div>
-            <a asp-action="Checkout" class="btn btn-primary shop-btn-primary">Tiến hành đặt hàng</a>
+            <div class="d-flex flex-wrap gap-2">
+                <form method="post" asp-action="Clear">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-outline-danger">Xóa giỏ hàng</button>
+                </form>
+                <a asp-action="Checkout" class="btn btn-primary shop-btn-primary">Tiến hành đặt hàng</a>
+            </div>
         </div>
     </section>
 }

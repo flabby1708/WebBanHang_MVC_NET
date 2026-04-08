@@ -4,6 +4,74 @@
     var displayPages = Model.Data.GetDisplayPages(2);
 }
 
+@functions {
+    private static string GetStatusClass(OrderStatusEnum status)
+    {
+        return status switch
+        {
+            OrderStatusEnum.New => "status-new",
+            OrderStatusEnum.Accepted => "status-accepted",
+            OrderStatusEnum.Shipping => "status-shipping",
+            OrderStatusEnum.Completed => "status-completed",
+            OrderStatusEnum.Rejected => "status-rejected",
+            OrderStatusEnum.Cancelled => "status-cancelled",
+            _ => "status-cancelled"
+        };
+    }
+
+    private static string GetActionHtml(SV22T1020497.Models.Sales.OrderViewInfo item)
+    {
+        var actions = new List<string>
+        {
+            $@"<a href=""~/Order/Detail/{item.OrderID}"" class=""btn btn-primary btn-sm action-btn"" title=""Xem chi tiết"">
+                    <i class=""bi bi-receipt""></i>
+               </a>"
+        };
+
+        switch (item.Status)
+        {
+            case OrderStatusEnum.New:
+                actions.Add($@"<a href=""~/Order/Accept/{item.OrderID}?returnAction=Index"" class=""btn btn-info btn-sm action-btn open-modal"" title=""Duyệt đơn"">
+                                   <i class=""bi bi-check2-circle""></i>
+                               </a>");
+                actions.Add($@"<a href=""~/Order/Reject/{item.OrderID}?returnAction=Index"" class=""btn btn-danger btn-sm action-btn open-modal"" title=""Từ chối đơn"">
+                                   <i class=""bi bi-x-circle""></i>
+                               </a>");
+                actions.Add($@"<a href=""~/Order/Cancel/{item.OrderID}?returnAction=Index"" class=""btn btn-warning btn-sm action-btn open-modal"" title=""Hủy đơn"">
+                                   <i class=""bi bi-slash-circle""></i>
+                               </a>");
+                actions.Add($@"<a href=""~/Order/Delete/{item.OrderID}?returnAction=Index"" class=""btn btn-outline-danger btn-sm action-btn open-modal"" title=""Xóa đơn"">
+                                   <i class=""bi bi-trash""></i>
+                               </a>");
+                break;
+
+            case OrderStatusEnum.Accepted:
+                actions.Add($@"<a href=""~/Order/Shipping/{item.OrderID}?returnAction=Index"" class=""btn btn-primary btn-sm action-btn open-modal"" title=""Giao hàng"">
+                                   <i class=""bi bi-truck""></i>
+                               </a>");
+                actions.Add($@"<a href=""~/Order/Cancel/{item.OrderID}?returnAction=Index"" class=""btn btn-warning btn-sm action-btn open-modal"" title=""Hủy đơn"">
+                                   <i class=""bi bi-slash-circle""></i>
+                               </a>");
+                break;
+
+            case OrderStatusEnum.Shipping:
+                actions.Add($@"<a href=""~/Order/Finish/{item.OrderID}?returnAction=Index"" class=""btn btn-success btn-sm action-btn open-modal"" title=""Hoàn tất đơn"">
+                                   <i class=""bi bi-check2-square""></i>
+                               </a>");
+                break;
+
+            case OrderStatusEnum.Rejected:
+            case OrderStatusEnum.Cancelled:
+                actions.Add($@"<a href=""~/Order/Delete/{item.OrderID}?returnAction=Index"" class=""btn btn-outline-danger btn-sm action-btn open-modal"" title=""Xóa đơn"">
+                                   <i class=""bi bi-trash""></i>
+                               </a>");
+                break;
+        }
+
+        return string.Join("", actions);
+    }
+}
+
 <style>
     .order-search-shell .result-summary {
         color: #64748b;
@@ -22,7 +90,7 @@
     }
 
     .order-search-shell .order-table {
-        min-width: 980px;
+        min-width: 1180px;
         margin-bottom: 0;
     }
 
@@ -99,6 +167,17 @@
         color: #475569;
     }
 
+    .order-search-shell .action-cell {
+        min-width: 220px;
+    }
+
+    .order-search-shell .action-group {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.35rem;
+    }
+
     .order-search-shell .action-btn {
         width: 2.25rem;
         height: 2.25rem;
@@ -159,7 +238,7 @@
                             <th>Nhân viên xử lý</th>
                             <th class="text-end">Tổng tiền</th>
                             <th class="text-center" style="width:170px;">Trạng thái</th>
-                            <th class="text-center" style="width:72px;">Xem</th>
+                            <th class="text-center action-cell">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -167,17 +246,6 @@
                         {
                             foreach (var item in Model.Data.DataItems)
                             {
-                                var statusClass = item.Status switch
-                                {
-                                    OrderStatusEnum.New => "status-new",
-                                    OrderStatusEnum.Accepted => "status-accepted",
-                                    OrderStatusEnum.Shipping => "status-shipping",
-                                    OrderStatusEnum.Completed => "status-completed",
-                                    OrderStatusEnum.Rejected => "status-rejected",
-                                    OrderStatusEnum.Cancelled => "status-cancelled",
-                                    _ => "status-cancelled"
-                                };
-
                                 <tr>
                                     <td>
                                         <div class="fw-semibold">@item.OrderTime.ToString("dd/MM/yyyy")</div>
@@ -207,12 +275,12 @@
                                         @(Model.OrderTotals.ContainsKey(item.OrderID) ? Model.OrderTotals[item.OrderID].ToString("N0") : "0")
                                     </td>
                                     <td class="text-center">
-                                        <span class="status-pill @statusClass">@item.Status.GetDescription()</span>
+                                        <span class="status-pill @GetStatusClass(item.Status)">@item.Status.GetDescription()</span>
                                     </td>
-                                    <td class="text-center">
-                                        <a href="~/Order/Detail/@item.OrderID" class="btn btn-primary btn-sm action-btn" title="Xem chi tiết">
-                                            <i class="bi bi-receipt"></i>
-                                        </a>
+                                    <td class="text-center action-cell">
+                                        <div class="action-group">
+                                            @Html.Raw(GetActionHtml(item))
+                                        </div>
                                     </td>
                                 </tr>
                             }

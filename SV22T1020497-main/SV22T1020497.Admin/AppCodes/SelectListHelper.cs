@@ -13,7 +13,6 @@ namespace SV22T1020497.Admin.AppCodes
         /// <summary>
         /// Tỉnh thành
         /// </summary>
-        /// <returns></returns>
         public static async Task<List<SelectListItem>> Provinces()
         {
             var list = new List<SelectListItem>
@@ -37,7 +36,6 @@ namespace SV22T1020497.Admin.AppCodes
         /// <summary>
         /// Loại hàng
         /// </summary>
-        /// <returns></returns>
         public static async Task<List<SelectListItem>> Categories()
         {
             var list = new List<SelectListItem>
@@ -62,7 +60,6 @@ namespace SV22T1020497.Admin.AppCodes
         /// <summary>
         /// Nhà cung cấp
         /// </summary>
-        /// <returns></returns>
         public static async Task<List<SelectListItem>> Suppliers()
         {
             var list = new List<SelectListItem>
@@ -87,7 +84,6 @@ namespace SV22T1020497.Admin.AppCodes
         /// <summary>
         /// Các trạng thái của đơn hàng
         /// </summary>
-        /// <returns></returns>
         public static List<SelectListItem> OrderStatus()
         {
             return new List<SelectListItem>

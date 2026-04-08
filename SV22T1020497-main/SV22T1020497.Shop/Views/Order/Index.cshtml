@@ -8,6 +8,37 @@
     <a asp-controller="Product" asp-action="Index" class="btn btn-outline-secondary">Tiếp tục mua sắm</a>
 </div>
 
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="shop-history-card">
+            <span class="shop-history-card__label">Tổng đơn</span>
+            <strong>@Model.TotalOrders</strong>
+            <small>Toàn bộ lịch sử mua hàng</small>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="shop-history-card">
+            <span class="shop-history-card__label">Đang xử lý</span>
+            <strong>@Model.PendingOrders</strong>
+            <small>Đơn mới và đã duyệt</small>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="shop-history-card">
+            <span class="shop-history-card__label">Đang giao</span>
+            <strong>@Model.ShippingOrders</strong>
+            <small>Đơn hàng đang vận chuyển</small>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="shop-history-card">
+            <span class="shop-history-card__label">Hoàn tất</span>
+            <strong>@Model.CompletedOrders</strong>
+            <small>Đơn giao thành công</small>
+        </div>
+    </div>
+</div>
+
 @if (!Model.Orders.Any())
 {
     <div class="alert alert-info">Bạn chưa có đơn hàng nào.</div>
@@ -23,6 +54,7 @@ else
                         <th>Ngày đặt</th>
                         <th>Giao đến</th>
                         <th>Trạng thái</th>
+                        <th>Theo dõi</th>
                         <th style="width: 120px;"></th>
                     </tr>
                 </thead>
@@ -35,6 +67,24 @@ else
                             <td>@item.DeliveryProvince - @item.DeliveryAddress</td>
                             <td>
                                 <span class="badge text-bg-secondary">@item.Status.GetDescription()</span>
+                            </td>
+                            <td class="small text-secondary">
+                                @if (item.FinishedTime.HasValue)
+                                {
+                                    <span>Cập nhật @item.FinishedTime.Value.ToString("dd/MM/yyyy HH:mm")</span>
+                                }
+                                else if (item.ShippedTime.HasValue)
+                                {
+                                    <span>Đang giao từ @item.ShippedTime.Value.ToString("dd/MM/yyyy HH:mm")</span>
+                                }
+                                else if (item.AcceptTime.HasValue)
+                                {
+                                    <span>Đã duyệt @item.AcceptTime.Value.ToString("dd/MM/yyyy HH:mm")</span>
+                                }
+                                else
+                                {
+                                    <span>Chờ xử lý</span>
+                                }
                             </td>
                             <td>
                                 <a asp-action="Details" asp-route-id="@item.OrderID" class="btn btn-outline-primary btn-sm">Chi tiết</a>

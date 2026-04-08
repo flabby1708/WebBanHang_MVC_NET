@@ -60,5 +60,27 @@
                 </div>
             </div>
         </div>
+
+        <div class="card border-0 shadow-sm mt-4">
+            <div class="card-body p-4">
+                <h2 class="h5 mb-3">Theo dõi đơn hàng</h2>
+                <div class="shop-timeline">
+                    @foreach (var step in Model.Timeline)
+                    {
+                        var cssClass = step.IsCurrent ? "is-current" : step.IsCompleted ? "is-done" : "";
+                        <div class="shop-timeline__item @cssClass">
+                            <div class="shop-timeline__dot"></div>
+                            <div class="shop-timeline__content">
+                                <div class="fw-semibold">@step.Title</div>
+                                <div class="small text-secondary">@step.Description</div>
+                                <div class="small mt-1 @(step.Time.HasValue ? "text-primary" : "text-muted")">
+                                    @(step.Time.HasValue ? step.Time.Value.ToString("dd/MM/yyyy HH:mm") : "Chưa có cập nhật")
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
     </div>
 </div>

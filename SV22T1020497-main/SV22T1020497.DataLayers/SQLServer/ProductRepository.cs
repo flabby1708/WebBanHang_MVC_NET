@@ -130,9 +130,28 @@ WHERE (@SearchValue = N'' OR ProductName LIKE @Keyword)
         /// <returns>True nếu xóa thành công, ngược lại là false.</returns>
         public async Task<bool> DeleteAsync(int productID)
         {
-            const string sql = @"DELETE FROM Products WHERE ProductID = @ProductID;";
             await using var connection = new SqlConnection(_connectionString);
-            return await connection.ExecuteAsync(sql, new { ProductID = productID }) > 0;
+            await connection.OpenAsync();
+            await using var transaction = await connection.BeginTransactionAsync();
+
+            try
+            {
+                const string deletePhotosSql = @"DELETE FROM ProductPhotos WHERE ProductID = @ProductID;";
+                const string deleteAttributesSql = @"DELETE FROM ProductAttributes WHERE ProductID = @ProductID;";
+                const string deleteProductSql = @"DELETE FROM Products WHERE ProductID = @ProductID;";
+
+                await connection.ExecuteAsync(deletePhotosSql, new { ProductID = productID }, transaction);
+                await connection.ExecuteAsync(deleteAttributesSql, new { ProductID = productID }, transaction);
+                int affectedRows = await connection.ExecuteAsync(deleteProductSql, new { ProductID = productID }, transaction);
+
+                await transaction.CommitAsync();
+                return affectedRows > 0;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         /// <summary>

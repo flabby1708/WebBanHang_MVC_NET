@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using SV22T1020497.BusinessLayers;
 using SV22T1020497.Models.Partner;
+using SV22T1020497.Shop.AppCodes;
 using SV22T1020497.Shop.Models;
 
 namespace SV22T1020497.Shop.Controllers
@@ -81,8 +82,10 @@ namespace SV22T1020497.Shop.Controllers
             ViewData["Title"] = "Đăng ký tài khoản";
             await LoadProvincesAsync();
 
-            if (string.IsNullOrWhiteSpace(model.CustomerName))
-                ModelState.AddModelError(nameof(model.CustomerName), "Vui lòng nhập tên khách hàng");
+            if (!VietnameseNameValidator.TryValidateCustomerName(model.CustomerName, out var normalizedCustomerName, out var customerNameError))
+                ModelState.AddModelError(nameof(model.CustomerName), customerNameError);
+            else
+                model.CustomerName = normalizedCustomerName;
 
             if (string.IsNullOrWhiteSpace(model.ContactName))
                 ModelState.AddModelError(nameof(model.ContactName), "Vui lòng nhập tên giao dịch");
@@ -90,9 +93,12 @@ namespace SV22T1020497.Shop.Controllers
             if (string.IsNullOrWhiteSpace(model.Province))
                 ModelState.AddModelError(nameof(model.Province), "Vui lòng chọn tỉnh/thành");
 
-            if (string.IsNullOrWhiteSpace(model.Email))
-                ModelState.AddModelError(nameof(model.Email), "Vui lòng nhập email");
-            else if (!await PartnerDataService.ValidatelCustomerEmailAsync(model.Email))
+            if (!CustomerEmailValidator.TryValidate(model.Email, out var normalizedEmail, out var emailError))
+                ModelState.AddModelError(nameof(model.Email), emailError);
+            else
+                model.Email = normalizedEmail;
+
+            if (!string.IsNullOrWhiteSpace(model.Email) && !await PartnerDataService.ValidatelCustomerEmailAsync(model.Email))
                 ModelState.AddModelError(nameof(model.Email), "Email đã được sử dụng");
 
             if (!ModelState.IsValid)
@@ -103,8 +109,8 @@ namespace SV22T1020497.Shop.Controllers
                 CustomerName = model.CustomerName.Trim(),
                 ContactName = model.ContactName.Trim(),
                 Province = model.Province.Trim(),
-                Address = model.Address?.Trim() ?? "",
-                Phone = model.Phone?.Trim() ?? "",
+                Address = model.Address?.Trim() ?? string.Empty,
+                Phone = model.Phone?.Trim() ?? string.Empty,
                 Email = model.Email.Trim(),
                 Password = model.Password,
                 IsLocked = false
@@ -130,7 +136,7 @@ namespace SV22T1020497.Shop.Controllers
                 CustomerID = customer.CustomerID,
                 CustomerName = customer.CustomerName,
                 ContactName = customer.ContactName,
-                Province = customer.Province ?? "",
+                Province = customer.Province ?? string.Empty,
                 Address = customer.Address,
                 Phone = customer.Phone,
                 Email = customer.Email
@@ -152,8 +158,10 @@ namespace SV22T1020497.Shop.Controllers
             if (currentCustomer.CustomerID != model.CustomerID)
                 return Forbid();
 
-            if (string.IsNullOrWhiteSpace(model.CustomerName))
-                ModelState.AddModelError(nameof(model.CustomerName), "Vui lòng nhập tên khách hàng");
+            if (!VietnameseNameValidator.TryValidateCustomerName(model.CustomerName, out var normalizedCustomerName, out var customerNameError))
+                ModelState.AddModelError(nameof(model.CustomerName), customerNameError);
+            else
+                model.CustomerName = normalizedCustomerName;
 
             if (string.IsNullOrWhiteSpace(model.ContactName))
                 ModelState.AddModelError(nameof(model.ContactName), "Vui lòng nhập tên giao dịch");
@@ -161,9 +169,12 @@ namespace SV22T1020497.Shop.Controllers
             if (string.IsNullOrWhiteSpace(model.Province))
                 ModelState.AddModelError(nameof(model.Province), "Vui lòng chọn tỉnh/thành");
 
-            if (string.IsNullOrWhiteSpace(model.Email))
-                ModelState.AddModelError(nameof(model.Email), "Vui lòng nhập email");
-            else if (!await PartnerDataService.ValidatelCustomerEmailAsync(model.Email, model.CustomerID))
+            if (!CustomerEmailValidator.TryValidate(model.Email, out var normalizedEmail, out var emailError))
+                ModelState.AddModelError(nameof(model.Email), emailError);
+            else
+                model.Email = normalizedEmail;
+
+            if (!string.IsNullOrWhiteSpace(model.Email) && !await PartnerDataService.ValidatelCustomerEmailAsync(model.Email, model.CustomerID))
                 ModelState.AddModelError(nameof(model.Email), "Email đã được sử dụng");
 
             if (!ModelState.IsValid)
@@ -172,8 +183,8 @@ namespace SV22T1020497.Shop.Controllers
             currentCustomer.CustomerName = model.CustomerName.Trim();
             currentCustomer.ContactName = model.ContactName.Trim();
             currentCustomer.Province = model.Province.Trim();
-            currentCustomer.Address = model.Address?.Trim() ?? "";
-            currentCustomer.Phone = model.Phone?.Trim() ?? "";
+            currentCustomer.Address = model.Address?.Trim() ?? string.Empty;
+            currentCustomer.Phone = model.Phone?.Trim() ?? string.Empty;
             currentCustomer.Email = model.Email.Trim();
 
             await PartnerDataService.UpdateCustomerAsync(currentCustomer);
@@ -201,7 +212,7 @@ namespace SV22T1020497.Shop.Controllers
             if (!ModelState.IsValid)
                 return View(model);
 
-            string email = User.FindFirstValue(ClaimTypes.Email) ?? "";
+            string email = User.FindFirstValue(ClaimTypes.Email) ?? string.Empty;
             var currentUser = await SecurityDataService.AuthorizeCustomerAsync(email, model.OldPassword);
             if (currentUser == null)
             {
@@ -231,7 +242,7 @@ namespace SV22T1020497.Shop.Controllers
         {
             var items = new List<SelectListItem>
             {
-                new() { Value = "", Text = "-- Chọn tỉnh/thành --" }
+                new() { Value = string.Empty, Text = "-- Chọn tỉnh/thành --" }
             };
 
             var provinces = await DictionaryDataService.ListProvincesAsync();
@@ -249,7 +260,7 @@ namespace SV22T1020497.Shop.Controllers
 
         private async Task<Customer?> GetCurrentCustomerAsync()
         {
-            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "";
+            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
             if (!int.TryParse(userId, out int customerId))
                 return null;
 

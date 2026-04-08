@@ -24,6 +24,7 @@ namespace SV22T1020497.Shop.Models
 
         [Required(ErrorMessage = "Vui lòng nhập email")]
         [EmailAddress(ErrorMessage = "Email không hợp lệ")]
+        [RegularExpression(@"^[A-Za-z0-9](?:[A-Za-z0-9._%+-]{4,62})@gmail\.com$", ErrorMessage = "Email phải có dạng ten@gmail.com")]
         [Display(Name = "Email")]
         public string Email { get; set; } = string.Empty;
 

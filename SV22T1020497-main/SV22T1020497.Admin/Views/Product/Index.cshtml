@@ -1,9 +1,16 @@
+@using Microsoft.AspNetCore.Mvc.Rendering
 @model IEnumerable<SV22T1020497.Models.Catalog.Product>
 @{
     ViewBag.Title = "Quản lý mặt hàng";
     int currentPage = ViewBag.CurrentPage ?? 1;
     int totalPages = ViewBag.TotalPages ?? 1;
     string searchValue = ViewBag.SearchValue ?? "";
+    int categoryId = ViewBag.CategoryID ?? 0;
+    int supplierId = ViewBag.SupplierID ?? 0;
+    decimal minPrice = ViewBag.MinPrice ?? 0m;
+    decimal maxPrice = ViewBag.MaxPrice ?? 0m;
+    var categories = ViewBag.Categories as List<SelectListItem> ?? new List<SelectListItem>();
+    var suppliers = ViewBag.Suppliers as List<SelectListItem> ?? new List<SelectListItem>();
     int startPage = Math.Max(1, currentPage - 2);
     int endPage = Math.Min(totalPages, currentPage + 2);
 }
@@ -17,15 +24,40 @@
 <div class="card mb-3">
     <div class="card-body">
         <form id="formSearch" method="get" action="~/Product">
-            <div class="input-group">
-                <input type="text"
-                       class="form-control"
-                       name="searchValue"
-                       value="@searchValue"
-                       placeholder="Tên mặt hàng..." autofocus />
-                <button class="btn btn-info d-flex align-items-center">
-                    <i class="bi bi-search me-1"></i>
-                </button>
+            <div class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label">Tên mặt hàng</label>
+                    <input type="text"
+                           class="form-control"
+                           name="searchValue"
+                           value="@searchValue"
+                           placeholder="Nhập tên mặt hàng..."
+                           autofocus />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Loại hàng</label>
+                    <select class="form-select" name="categoryId" asp-items="categories"></select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Nhà cung cấp</label>
+                    <select class="form-select" name="supplierId" asp-items="suppliers"></select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Giá từ</label>
+                    <input type="number" class="form-control" name="minPrice" value="@minPrice" min="0" step="1000" placeholder="0" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Đến giá</label>
+                    <input type="number" class="form-control" name="maxPrice" value="@maxPrice" min="0" step="1000" placeholder="0" />
+                </div>
+                <div class="col-md-1 d-grid gap-2">
+                    <button class="btn btn-info d-flex align-items-center justify-content-center" title="Tìm kiếm">
+                        <i class="bi bi-search"></i>
+                    </button>
+                    <a href="~/Product" class="btn btn-outline-secondary" title="Làm mới">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </a>
+                </div>
             </div>
         </form>
     </div>
@@ -33,6 +65,10 @@
 
 <div class="mb-2 text-muted">
     Danh sách này có <strong>@(Model?.Count() ?? 0)</strong> mặt hàng
+    @if (!string.IsNullOrWhiteSpace(searchValue) || categoryId > 0 || supplierId > 0 || minPrice > 0 || maxPrice > 0)
+    {
+        <span> phù hợp với điều kiện tìm kiếm.</span>
+    }
 </div>
 
 <div class="card">
@@ -42,6 +78,8 @@
                 <tr>
                     <th style="width:80px;">Ảnh</th>
                     <th>Mặt hàng</th>
+                    <th style="width:100px;" class="text-center">Loại</th>
+                    <th style="width:120px;" class="text-center">Nhà cung cấp</th>
                     <th style="width:120px;">Đơn vị</th>
                     <th style="width:140px;" class="text-end">Giá</th>
                     <th class="text-center" style="width:140px;">Trạng thái</th>
@@ -49,7 +87,7 @@
                 </tr>
             </thead>
             <tbody>
-                @if (Model != null)
+                @if (Model != null && Model.Any())
                 {
                     foreach (var item in Model)
                     {
@@ -70,10 +108,12 @@
                                 <strong>@item.ProductName</strong><br />
                                 <span class="text-muted">@item.ProductDescription</span>
                             </td>
+                            <td class="text-center align-middle">@(item.CategoryID?.ToString() ?? "-")</td>
+                            <td class="text-center align-middle">@(item.SupplierID?.ToString() ?? "-")</td>
                             <td class="align-middle">@item.Unit</td>
                             <td class="text-end align-middle">@item.Price.ToString("N0") đ</td>
                             <td class="text-center align-middle">
-                                @if (item.IsSelling == true)
+                                @if (item.IsSelling)
                                 {
                                     <span class="badge bg-success">Đang bán</span>
                                 }
@@ -83,18 +123,29 @@
                                 }
                             </td>
                             <td class="text-center text-nowrap align-middle">
-                                <a class="btn btn-sm btn-primary" href="~/Product/Edit/@item.ProductID">
+                                <a class="btn btn-sm btn-primary" href="~/Product/Edit/@item.ProductID" title="Cập nhật">
                                     <i class="bi bi-pencil"></i>
                                 </a>
-                                <a class="btn btn-sm btn-info" href="~/Product/Edit/@item.ProductID">
+                                <a class="btn btn-sm btn-info" href="~/Product/ListAttributes/@item.ProductID" title="Thuộc tính">
                                     <i class="bi bi-card-list"></i>
                                 </a>
-                                <a class="btn btn-sm btn-danger" href="~/Product/Delete/@item.ProductID">
+                                <a class="btn btn-sm btn-warning" href="~/Product/ListPhotos/@item.ProductID" title="Ảnh">
+                                    <i class="bi bi-images"></i>
+                                </a>
+                                <a class="btn btn-sm btn-danger" href="~/Product/Delete/@item.ProductID" title="Xóa">
                                     <i class="bi bi-trash"></i>
                                 </a>
                             </td>
                         </tr>
                     }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-4">
+                            Không có mặt hàng nào phù hợp với điều kiện tìm kiếm.
+                        </td>
+                    </tr>
                 }
             </tbody>
         </table>
@@ -104,17 +155,17 @@
             @if (currentPage > 1)
             {
                 <li class="page-item">
-                    <a class="page-link" href="~/Product?page=1&searchValue=@searchValue">« Đầu</a>
+                    <a class="page-link" href="~/Product?page=1&searchValue=@searchValue&categoryId=@categoryId&supplierId=@supplierId&minPrice=@minPrice&maxPrice=@maxPrice">« Đầu</a>
                 </li>
                 <li class="page-item">
-                    <a class="page-link" href="~/Product?page=@(currentPage - 1)&searchValue=@searchValue">‹ Trước</a>
+                    <a class="page-link" href="~/Product?page=@(currentPage - 1)&searchValue=@searchValue&categoryId=@categoryId&supplierId=@supplierId&minPrice=@minPrice&maxPrice=@maxPrice">‹ Trước</a>
                 </li>
             }
 
             @if (startPage > 1)
             {
                 <li class="page-item">
-                    <a class="page-link" href="~/Product?page=1&searchValue=@searchValue">1</a>
+                    <a class="page-link" href="~/Product?page=1&searchValue=@searchValue&categoryId=@categoryId&supplierId=@supplierId&minPrice=@minPrice&maxPrice=@maxPrice">1</a>
                 </li>
 
                 @if (startPage > 2)
@@ -136,7 +187,7 @@
                 else
                 {
                     <li class="page-item">
-                        <a class="page-link" href="~/Product?page=@i&searchValue=@searchValue">@i</a>
+                        <a class="page-link" href="~/Product?page=@i&searchValue=@searchValue&categoryId=@categoryId&supplierId=@supplierId&minPrice=@minPrice&maxPrice=@maxPrice">@i</a>
                     </li>
                 }
             }
@@ -151,17 +202,17 @@
                 }
 
                 <li class="page-item">
-                    <a class="page-link" href="~/Product?page=@totalPages&searchValue=@searchValue">@totalPages</a>
+                    <a class="page-link" href="~/Product?page=@totalPages&searchValue=@searchValue&categoryId=@categoryId&supplierId=@supplierId&minPrice=@minPrice&maxPrice=@maxPrice">@totalPages</a>
                 </li>
             }
 
             @if (currentPage < totalPages)
             {
                 <li class="page-item">
-                    <a class="page-link" href="~/Product?page=@(currentPage + 1)&searchValue=@searchValue">Sau</a>
+                    <a class="page-link" href="~/Product?page=@(currentPage + 1)&searchValue=@searchValue&categoryId=@categoryId&supplierId=@supplierId&minPrice=@minPrice&maxPrice=@maxPrice">Sau</a>
                 </li>
                 <li class="page-item">
-                    <a class="page-link" href="~/Product?page=@totalPages&searchValue=@searchValue">Cuối »</a>
+                    <a class="page-link" href="~/Product?page=@totalPages&searchValue=@searchValue&categoryId=@categoryId&supplierId=@supplierId&minPrice=@minPrice&maxPrice=@maxPrice">Cuối »</a>
                 </li>
             }
         </ul>

@@ -1,11 +1,16 @@
 @model SV22T1020497.Models.Sales.OrderViewInfo
 @{
     Layout = null;
+    var returnAction = Context.Request.Query["returnAction"].ToString();
+    if (string.IsNullOrWhiteSpace(returnAction))
+    {
+        returnAction = "Detail";
+    }
 }
 <form method="post" asp-action="Accept">
     @Html.AntiForgeryToken()
     <input type="hidden" name="id" value="@Model.OrderID" />
-    <input type="hidden" name="returnAction" value="Detail" />
+    <input type="hidden" name="returnAction" value="@returnAction" />
     <div class="modal-header text-bg-info">
         <strong class="modal-title">Duyệt chấp nhận đơn hàng</strong>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>

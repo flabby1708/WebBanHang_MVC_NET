@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using SV22T1020497.Admin.AppCodes;
 using SV22T1020497.BusinessLayers;
 using SV22T1020497.DataLayers.SQLServer;
@@ -13,33 +14,53 @@ namespace SV22T1020497.Admin.Controllers
     [Authorize(Roles = $"{WebUserRoles.Products},{WebUserRoles.SystemAdmin}")]
     public class ProductController : Controller
     {
-        public async Task<IActionResult> Index(string searchValue = "", int page = 1)
+        public async Task<IActionResult> Index(string searchValue = "", int categoryId = 0, int supplierId = 0, decimal minPrice = 0, decimal maxPrice = 0, int page = 1)
         {
             var input = new ProductSearchInput
             {
                 SearchValue = searchValue,
+                CategoryID = categoryId,
+                SupplierID = supplierId,
+                MinPrice = minPrice,
+                MaxPrice = maxPrice,
                 Page = page,
                 PageSize = 5
             };
 
             var result = await CreateRepository().ListAsync(input);
             ViewBag.SearchValue = searchValue;
+            ViewBag.CategoryID = categoryId;
+            ViewBag.SupplierID = supplierId;
+            ViewBag.MinPrice = minPrice;
+            ViewBag.MaxPrice = maxPrice;
             ViewBag.CurrentPage = result.Page;
             ViewBag.TotalPages = result.PageCount;
+            ViewBag.Categories = await BuildCategoriesAsync(categoryId);
+            ViewBag.Suppliers = await BuildSuppliersAsync(supplierId);
 
             return View(result.DataItems);
         }
 
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            return View(new Product());
+            await LoadProductLookupsAsync();
+            return View(new Product
+            {
+                IsSelling = true
+            });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Product model)
         {
-            if (!ModelState.IsValid) return View(model);
+            ValidateProduct(model);
+
+            if (!ModelState.IsValid)
+            {
+                await LoadProductLookupsAsync(model.CategoryID ?? 0, model.SupplierID ?? 0);
+                return View(model);
+            }
 
             await CreateRepository().AddAsync(model);
             TempData["SuccessMessage"] = "Đã thêm mặt hàng.";
@@ -50,6 +71,8 @@ namespace SV22T1020497.Admin.Controllers
         {
             var item = await CreateRepository().GetAsync(id);
             if (item == null) return NotFound();
+
+            await LoadProductLookupsAsync(item.CategoryID ?? 0, item.SupplierID ?? 0);
             return View(item);
         }
 
@@ -57,7 +80,13 @@ namespace SV22T1020497.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Product model)
         {
-            if (!ModelState.IsValid) return View(model);
+            ValidateProduct(model);
+
+            if (!ModelState.IsValid)
+            {
+                await LoadProductLookupsAsync(model.CategoryID ?? 0, model.SupplierID ?? 0);
+                return View(model);
+            }
 
             bool updated = await CreateRepository().UpdateAsync(model);
             if (!updated) return NotFound();
@@ -136,7 +165,7 @@ namespace SV22T1020497.Admin.Controllers
 
             await CreateRepository().AddAttributeAsync(model);
             TempData["SuccessMessage"] = "Đã bổ sung thuộc tính.";
-            return RedirectToAction(nameof(Edit), new { id });
+            return RedirectToAction(nameof(ListAttributes), new { id });
         }
 
         public async Task<IActionResult> EditAttribute(int id, int attributeId)
@@ -173,7 +202,7 @@ namespace SV22T1020497.Admin.Controllers
             if (!updated) return NotFound();
 
             TempData["SuccessMessage"] = "Đã cập nhật thuộc tính.";
-            return RedirectToAction(nameof(Edit), new { id });
+            return RedirectToAction(nameof(ListAttributes), new { id });
         }
 
         public async Task<IActionResult> DeleteAttribute(int id, int attributeId)
@@ -198,7 +227,7 @@ namespace SV22T1020497.Admin.Controllers
                 ? "Đã xóa thuộc tính."
                 : "Không thể xóa thuộc tính.";
 
-            return RedirectToAction(nameof(Edit), new { id });
+            return RedirectToAction(nameof(ListAttributes), new { id });
         }
 
         public async Task<IActionResult> ListPhotos(int id)
@@ -245,7 +274,7 @@ namespace SV22T1020497.Admin.Controllers
 
             await CreateRepository().AddPhotoAsync(model);
             TempData["SuccessMessage"] = "Đã bổ sung ảnh mặt hàng.";
-            return RedirectToAction(nameof(Edit), new { id });
+            return RedirectToAction(nameof(ListPhotos), new { id });
         }
 
         public async Task<IActionResult> EditPhoto(int id, int photoId)
@@ -289,7 +318,7 @@ namespace SV22T1020497.Admin.Controllers
             if (!updated) return NotFound();
 
             TempData["SuccessMessage"] = "Đã cập nhật ảnh mặt hàng.";
-            return RedirectToAction(nameof(Edit), new { id });
+            return RedirectToAction(nameof(ListPhotos), new { id });
         }
 
         public async Task<IActionResult> DeletePhoto(int id, int photoId)
@@ -319,12 +348,54 @@ namespace SV22T1020497.Admin.Controllers
                 ? "Đã xóa ảnh mặt hàng."
                 : "Không thể xóa ảnh mặt hàng.";
 
-            return RedirectToAction(nameof(Edit), new { id });
+            return RedirectToAction(nameof(ListPhotos), new { id });
         }
 
         private static ProductRepository CreateRepository()
         {
             return new ProductRepository(Configuration.ConnectionString);
+        }
+
+        private async Task LoadProductLookupsAsync(int categoryId = 0, int supplierId = 0)
+        {
+            ViewBag.Categories = await BuildCategoriesAsync(categoryId);
+            ViewBag.Suppliers = await BuildSuppliersAsync(supplierId);
+        }
+
+        private static async Task<List<SelectListItem>> BuildCategoriesAsync(int selectedValue)
+        {
+            var items = await SelectListHelper.Categories();
+            foreach (var item in items)
+                item.Selected = item.Value == selectedValue.ToString();
+
+            return items;
+        }
+
+        private static async Task<List<SelectListItem>> BuildSuppliersAsync(int selectedValue)
+        {
+            var items = await SelectListHelper.Suppliers();
+            foreach (var item in items)
+                item.Selected = item.Value == selectedValue.ToString();
+
+            return items;
+        }
+
+        private void ValidateProduct(Product model)
+        {
+            if (string.IsNullOrWhiteSpace(model.ProductName))
+                ModelState.AddModelError(nameof(model.ProductName), "Vui lòng nhập tên mặt hàng.");
+
+            if (!model.CategoryID.HasValue || model.CategoryID.Value <= 0)
+                ModelState.AddModelError(nameof(model.CategoryID), "Vui lòng chọn loại hàng.");
+
+            if (!model.SupplierID.HasValue || model.SupplierID.Value <= 0)
+                ModelState.AddModelError(nameof(model.SupplierID), "Vui lòng chọn nhà cung cấp.");
+
+            if (string.IsNullOrWhiteSpace(model.Unit))
+                ModelState.AddModelError(nameof(model.Unit), "Vui lòng nhập đơn vị tính.");
+
+            if (model.Price < 0)
+                ModelState.AddModelError(nameof(model.Price), "Giá bán không hợp lệ.");
         }
 
         private void ValidateAttribute(ProductAttribute model)

@@ -446,6 +446,86 @@ body.shop-shell {
   box-shadow: var(--shop-shadow);
 }
 
+.shop-history-card {
+  height: 100%;
+  padding: 1.2rem 1.25rem;
+  border: 1px solid var(--shop-border);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: var(--shop-shadow);
+}
+
+.shop-history-card__label {
+  display: inline-block;
+  margin-bottom: 0.55rem;
+  color: var(--shop-primary);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.shop-history-card strong {
+  display: block;
+  font-size: 2rem;
+  line-height: 1;
+  margin-bottom: 0.45rem;
+}
+
+.shop-history-card small {
+  color: var(--shop-text-soft);
+}
+
+.shop-timeline {
+  position: relative;
+  display: grid;
+  gap: 1rem;
+}
+
+.shop-timeline__item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 0.9rem;
+}
+
+.shop-timeline__item:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 22px;
+  left: 8px;
+  width: 2px;
+  height: calc(100% + 0.5rem);
+  background: rgba(125, 166, 214, 0.22);
+}
+
+.shop-timeline__dot {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  margin-top: 0.15rem;
+  border: 3px solid rgba(125, 166, 214, 0.28);
+  border-radius: 50%;
+  background: #fff;
+}
+
+.shop-timeline__item.is-done .shop-timeline__dot,
+.shop-timeline__item.is-current .shop-timeline__dot {
+  border-color: rgba(24, 136, 255, 0.16);
+  background: var(--shop-primary);
+  box-shadow: 0 0 0 6px rgba(24, 136, 255, 0.12);
+}
+
+.shop-timeline__item.is-current .shop-timeline__content {
+  padding: 0.85rem 1rem;
+  border-radius: 18px;
+  background: rgba(24, 136, 255, 0.08);
+}
+
+.shop-timeline__content {
+  min-width: 0;
+}
+
 .shop-detail-gallery {
   border-radius: 28px;
   overflow: hidden;
